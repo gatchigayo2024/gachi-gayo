@@ -18,7 +18,7 @@ INSERT OR IGNORE INTO special_deals (title, subtitle, content, images, place_nam
 새우와 소프트크랩이 들어간 진한 맛의 로제 파스타. 저희 시그니처 메뉴에요.
 
 벽면 가득 진열된 와인과 고급스러운 인테리어, 잔잔히 울려퍼지는 김동률 음악… 특별한 날에는 <와인률 연희>',
-    '["https://popmenucloud.com/cdn-cgi/image/width=1200,height=1200,format=auto,fit=scale-down/zovhgdjk/4d1449e5-e2dd-43ee-9078-4db21c93692c.jpg", "https://nomadette.com/wp-content/uploads/2021/11/Shrimp-Rose-Pasta-Nomadette.jpg", "https://thumbs.dreamstime.com/b/cozy-bar-interior-featuring-stylish-pendant-lighting-well-stocked-shelf-beverages-urban-setting-warm-lamps-356399180.jpg"]',
+    '["https://popmenucloud.com/cdn-cgi/image/width=1200,height=1200,format=auto,fit=scale-down/zovhgdjk/4d1449e5-e2dd-43ee-9078-4db21c93692c.jpg", "https://nomadette.com/wp-content/uploads/2021/11/Shrimp-Rose-Pasta-Nomadette.jpg", "https://cdn.prod.website-files.com/63d06722a6f6c82db2e3292f/674070ac57c44d1e7b6d6c83_67406e6324dba8fb98534022_Bar%2520interior%2520with%2520bar%2520chairs%2520and%2520lights%2520at%2520night.jpeg"]',
     '와인률연희',
     '서울시 서대문구 연희로 10가길 50 1층'
   ),
@@ -34,7 +34,7 @@ INSERT OR IGNORE INTO special_deals (title, subtitle, content, images, place_nam
     '을지로 감성 선술집',
     '회원 가입 시 생맥주 무료',
     '을지로 감성 선술집에서 회원 가입하시는 모든 분께 생맥주 1잔을 무료로 제공합니다.',
-    '["https://blog.resy.com/wp-content/uploads/2024/05/Somaek-Pic-2_Homestyle-Korean-dishes-and-drinks_Brian-Samuels-Photography.jpg", "https://kimchimari.com/wp-content/uploads/2023/05/korean-bar-food-collage.jpg", "https://www.yourlittleblackbook.me/wp-content/uploads/2021/11/sojubar-amsterdam-Snapinsta.app_350091516_1966111153765521_5794677704145391881_n_1080-700x525.jpg"]',
+    '["https://middleclass.sg/wp-content/uploads/2021/03/Mixed-Korean-Fried-Chicken-with-Soju-and-Beer.jpg", "https://kimchimari.com/wp-content/uploads/2023/05/korean-bar-food-collage.jpg", "https://www.yourlittleblackbook.me/wp-content/uploads/2021/11/sojubar-amsterdam-Snapinsta.app_350091516_1966111153765521_5794677704145391881_n_1080-700x525.jpg"]',
     '을지선술',
     '서울시 중구 을지로3가 123'
   );
