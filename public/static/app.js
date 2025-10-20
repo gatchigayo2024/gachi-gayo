@@ -248,40 +248,6 @@ function closeLoginModal() {
   APP_STATE.loginCallback = null
 }
 
-// 테스트용 로그인 (개발 전용)
-async function testLogin() {
-  console.log('🧪 테스트 로그인 시작...')
-  
-  try {
-    const testUser = {
-      kakao_id: 'test_' + Date.now(),
-      name: '테스트 사용자',
-      phone: null
-    }
-    
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(testUser)
-    })
-    
-    const data = await res.json()
-    
-    if (data.success) {
-      console.log('✅ 테스트 로그인 성공:', data.user)
-      saveUser(data.user)
-      alert('테스트 계정으로 로그인되었습니다: ' + data.user.name)
-      navigateTo(APP_STATE.currentPage)
-    } else {
-      console.error('❌ 테스트 로그인 실패:', data)
-      alert('테스트 로그인 실패: ' + (data.error || '알 수 없는 오류'))
-    }
-  } catch (error) {
-    console.error('❌ 테스트 로그인 중 오류:', error)
-    alert('테스트 로그인 중 오류 발생: ' + error.message)
-  }
-}
-
 function requireLogin(callback) {
   if (!APP_STATE.currentUser) {
     showLoginModal(callback)
@@ -1139,14 +1105,9 @@ async function renderMyPage() {
         <div class="p-8 text-center">
           <i class="fas fa-user-circle text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-600 mb-6">로그인이 필요합니다</p>
-          <button onclick="showLoginModal()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg mb-4">
+          <button onclick="kakaoLogin()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg">
             <i class="fas fa-comment"></i> 카카오로 가입하기
           </button>
-          <div class="mt-4">
-            <button onclick="testLogin()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm">
-              🧪 테스트 계정으로 로그인
-            </button>
-          </div>
         </div>
       </div>
     `
