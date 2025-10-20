@@ -6,6 +6,9 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "vars": {
+    "KAKAO_JAVASCRIPT_KEY": ""
+  },
   "d1_databases": [
     {
       "binding": "DB",

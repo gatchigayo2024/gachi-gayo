@@ -27,6 +27,13 @@ function saveUser(user) {
 
 // 사용자 로그아웃
 function logout() {
+  // 카카오 로그아웃
+  if (Kakao.isInitialized() && Kakao.Auth.getAccessToken()) {
+    Kakao.Auth.logout(function() {
+      console.log('✅ 카카오 로그아웃 완료')
+    })
+  }
+  
   APP_STATE.currentUser = null
   localStorage.removeItem('user')
   navigateTo('my')
@@ -35,44 +42,81 @@ function logout() {
 // ============================================
 // 카카오 로그인
 // ============================================
-// 카카오 SDK 초기화 (실제 사용시 JavaScript 키 필요)
-// Kakao.init('YOUR_JAVASCRIPT_KEY')
+// 카카오 SDK 초기화
+if (window.KAKAO_KEY && !Kakao.isInitialized()) {
+  Kakao.init(window.KAKAO_KEY)
+  console.log('✅ Kakao SDK 초기화 성공:', Kakao.isInitialized())
+} else if (!window.KAKAO_KEY) {
+  console.warn('⚠️ KAKAO_KEY가 설정되지 않았습니다.')
+}
 
 function kakaoLogin() {
-  // MVP 버전: 간단한 테스트 로그인
-  const name = prompt('테스트용 이름을 입력하세요:')
-  if (!name) return
-  
-  const testUser = {
-    kakao_id: 'test_' + Date.now(),
-    name: name,
-    phone: '010-0000-0000'
+  if (!Kakao.isInitialized()) {
+    alert('카카오 SDK가 초기화되지 않았습니다. 관리자에게 문의하세요.')
+    console.error('❌ Kakao SDK 초기화 실패')
+    return
   }
   
-  // 서버에 로그인 요청
-  fetch('/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(testUser)
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      saveUser(data.user)
-      closeLoginModal()
+  console.log('🔐 카카오 로그인 시작...')
+  
+  Kakao.Auth.login({
+    success: function(authObj) {
+      console.log('✅ 카카오 인증 성공:', authObj)
       
-      // 로그인 후 콜백 실행
-      if (APP_STATE.loginCallback) {
-        APP_STATE.loginCallback()
-        APP_STATE.loginCallback = null
-      } else {
-        navigateTo(APP_STATE.currentPage)
-      }
+      // 사용자 정보 요청
+      Kakao.API.request({
+        url: '/v2/user/me',
+        success: function(res) {
+          console.log('✅ 사용자 정보 조회 성공:', res)
+          
+          const user = {
+            kakao_id: res.id.toString(),
+            name: res.properties.nickname,
+            phone: res.kakao_account.phone_number || null
+          }
+          
+          console.log('📤 서버 로그인 요청:', user)
+          
+          // 서버에 로그인 요청
+          fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              console.log('✅ 서버 로그인 성공:', data.user)
+              saveUser(data.user)
+              closeLoginModal()
+              
+              // 로그인 후 콜백 실행
+              if (APP_STATE.loginCallback) {
+                APP_STATE.loginCallback()
+                APP_STATE.loginCallback = null
+              } else {
+                navigateTo(APP_STATE.currentPage)
+              }
+            } else {
+              alert('서버 로그인 실패: ' + (data.error || '알 수 없는 오류'))
+              console.error('❌ 서버 로그인 실패:', data)
+            }
+          })
+          .catch(err => {
+            alert('서버 연결 실패')
+            console.error('❌ 서버 연결 오류:', err)
+          })
+        },
+        fail: function(err) {
+          alert('사용자 정보 가져오기 실패')
+          console.error('❌ 사용자 정보 조회 실패:', err)
+        }
+      })
+    },
+    fail: function(err) {
+      alert('카카오 로그인 실패')
+      console.error('❌ 카카오 로그인 실패:', err)
     }
-  })
-  .catch(err => {
-    alert('로그인 실패')
-    console.error(err)
   })
 }
 

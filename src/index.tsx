@@ -487,6 +487,8 @@ app.get('/api/my/liked-gatherings', async (c) => {
 // 프론트엔드 HTML
 // ============================================
 app.get('/', (c) => {
+  const kakaoKey = c.env.KAKAO_JAVASCRIPT_KEY || ''
+  
   return c.html(`
     <!DOCTYPE html>
     <html lang="ko">
@@ -497,6 +499,9 @@ app.get('/', (c) => {
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+        <script>
+          window.KAKAO_KEY = '${kakaoKey}';
+        </script>
         <style>
           /* 이미지 슬라이더 */
           .slider-container {
