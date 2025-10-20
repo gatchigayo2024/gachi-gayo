@@ -50,6 +50,81 @@ if (window.KAKAO_KEY && !Kakao.isInitialized()) {
   console.warn('⚠️ KAKAO_KEY가 설정되지 않았습니다.')
 }
 
+// ============================================
+// 네이버 지도
+// ============================================
+// 네이버 지도 표시 함수
+function initNaverMap(containerId, lat, lng, placeName) {
+  // 네이버 Maps API가 로드되었는지 확인
+  if (typeof naver === 'undefined' || !naver.maps) {
+    console.warn('⚠️ 네이버 Maps API가 로드되지 않았습니다.')
+    return null
+  }
+  
+  // 지도 옵션
+  const mapOptions = {
+    center: new naver.maps.LatLng(lat, lng),
+    zoom: 16,
+    zoomControl: true,
+    zoomControlOptions: {
+      position: naver.maps.Position.TOP_RIGHT
+    }
+  }
+  
+  // 지도 생성
+  const map = new naver.maps.Map(containerId, mapOptions)
+  
+  // 마커 생성
+  const marker = new naver.maps.Marker({
+    position: new naver.maps.LatLng(lat, lng),
+    map: map,
+    title: placeName
+  })
+  
+  return map
+}
+
+// 네이버 지도 앱으로 열기
+function openNaverMap(lat, lng, placeName) {
+  const url = `https://map.naver.com/v5/?c=${lng},${lat},16,0,0,0,dh&lng=${lng}&lat=${lat}&title=${encodeURIComponent(placeName)}`
+  window.open(url, '_blank')
+}
+
+// 네이버 지도 장소 페이지로 열기
+function openNaverMapPlace(dealId) {
+  // 특정 deal ID에 대한 네이버 지도 장소 ID 매핑
+  const placeIdMap = {
+    1: '1035431851' // 와인률연희
+  }
+  
+  const placeId = placeIdMap[dealId]
+  
+  if (placeId) {
+    // 네이버 지도 장소 페이지로 이동
+    const url = `https://map.naver.com/p/entry/place/${placeId}?c=15.00,0,0,0,dh`
+    window.open(url, '_blank')
+  } else {
+    // 기본 좌표로 열기
+    const deal = APP_STATE.selectedDeal
+    openNaverMap(deal.place_lat || 37.5665, deal.place_lng || 126.9780, deal.place_name)
+  }
+}
+
+// 같이가요 포스팅의 네이버 지도 열기
+function openNaverMapForGathering(gatheringId) {
+  const g = APP_STATE.selectedGathering
+  
+  // 같이가요가 특정 deal과 연결되어 있으면 해당 deal의 장소 ID 사용
+  if (g.special_deal_id === 1) {
+    // 와인률연희 장소 페이지로 이동
+    const url = `https://map.naver.com/p/entry/place/1035431851?c=15.00,0,0,0,dh`
+    window.open(url, '_blank')
+  } else {
+    // 기본 좌표로 열기
+    openNaverMap(g.place_lat || 37.5665, g.place_lng || 126.9780, g.place_name)
+  }
+}
+
 function kakaoLogin() {
   if (!Kakao.isInitialized()) {
     alert('카카오 SDK가 초기화되지 않았습니다. 관리자에게 문의하세요.')
@@ -171,6 +246,40 @@ function showLoginModal(callback) {
 function closeLoginModal() {
   document.getElementById('loginModal').classList.remove('active')
   APP_STATE.loginCallback = null
+}
+
+// 테스트용 로그인 (개발 전용)
+async function testLogin() {
+  console.log('🧪 테스트 로그인 시작...')
+  
+  try {
+    const testUser = {
+      kakao_id: 'test_' + Date.now(),
+      name: '테스트 사용자',
+      phone: null
+    }
+    
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(testUser)
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      console.log('✅ 테스트 로그인 성공:', data.user)
+      saveUser(data.user)
+      alert('테스트 계정으로 로그인되었습니다: ' + data.user.name)
+      navigateTo(APP_STATE.currentPage)
+    } else {
+      console.error('❌ 테스트 로그인 실패:', data)
+      alert('테스트 로그인 실패: ' + (data.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 테스트 로그인 중 오류:', error)
+    alert('테스트 로그인 중 오류 발생: ' + error.message)
+  }
 }
 
 function requireLogin(callback) {
@@ -318,29 +427,113 @@ function moveSlider(dealId, direction) {
 async function toggleDealLike(dealId) {
   if (!requireLogin(() => toggleDealLike(dealId))) return
   
-  const res = await fetch(`/api/deals/${dealId}/like`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
-  })
-  
-  const data = await res.json()
-  if (data.success) {
-    renderDealsPage()
+  try {
+    console.log('❤️ 특가 할인 좋아요 토글 요청:', { deal_id: dealId, user_id: APP_STATE.currentUser.id })
+    
+    const res = await fetch(`/api/deals/${dealId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
+    })
+    
+    const data = await res.json()
+    console.log('❤️ 특가 할인 좋아요 토글 응답:', data)
+    
+    if (data.success) {
+      // 상세 페이지가 열려있으면 새로고침
+      if (APP_STATE.selectedDeal && APP_STATE.selectedDeal.id === dealId) {
+        await showDealDetail(dealId)
+      }
+      // 목록 페이지도 새로고침
+      renderDealsPage()
+    } else {
+      console.error('❌ 좋아요 토글 실패:', data.error)
+      alert('좋아요 처리에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 좋아요 토글 중 오류:', error)
+    alert('좋아요 처리 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
-// 특가 할인 공유
+// 특가 할인 공유 (카카오톡)
 function shareDeal(dealId) {
-  // MVP: 간단한 URL 복사
-  const url = `${window.location.origin}/?deal=${dealId}`
+  const deal = APP_STATE.deals.find(d => d.id === dealId) || APP_STATE.selectedDeal
   
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url)
-    alert('링크가 복사되었습니다!')
-  } else {
-    prompt('이 링크를 복사하세요:', url)
+  if (!deal) {
+    alert('공유할 정보를 불러올 수 없습니다.')
+    return
   }
+  
+  if (!Kakao.isInitialized()) {
+    alert('카카오톡 공유 기능을 사용할 수 없습니다.')
+    return
+  }
+  
+  // 이미지 URL 파싱
+  const images = JSON.parse(deal.images)
+  const thumbnailUrl = images[0] || 'https://via.placeholder.com/400x300'
+  
+  // 카카오톡 공유하기
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: `🍽️ ${deal.title}`,
+      description: deal.subtitle || deal.content.substring(0, 100) + '...',
+      imageUrl: thumbnailUrl,
+      link: {
+        mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
+        webUrl: `${window.location.origin}/?deal=${dealId}`
+      }
+    },
+    buttons: [
+      {
+        title: '자세히 보기',
+        link: {
+          mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
+          webUrl: `${window.location.origin}/?deal=${dealId}`
+        }
+      }
+    ]
+  })
+}
+
+// 같이가요 공유 (카카오톡)
+function shareGathering(gatheringId) {
+  const gathering = APP_STATE.gatherings.find(g => g.id === gatheringId) || APP_STATE.selectedGathering
+  
+  if (!gathering) {
+    alert('공유할 정보를 불러올 수 없습니다.')
+    return
+  }
+  
+  if (!Kakao.isInitialized()) {
+    alert('카카오톡 공유 기능을 사용할 수 없습니다.')
+    return
+  }
+  
+  // 카카오톡 공유하기
+  Kakao.Share.sendDefault({
+    objectType: 'feed',
+    content: {
+      title: `👥 ${gathering.title}`,
+      description: `📅 ${gathering.date_text} ${gathering.time_text}\n👥 ${gathering.current_people}/${gathering.max_people > 10 ? 'N' : gathering.max_people}명\n📍 ${gathering.place_name}`,
+      imageUrl: 'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=같이가요',
+      link: {
+        mobileWebUrl: `${window.location.origin}/?gathering=${gatheringId}`,
+        webUrl: `${window.location.origin}/?gathering=${gatheringId}`
+      }
+    },
+    buttons: [
+      {
+        title: '같이가요 보기',
+        link: {
+          mobileWebUrl: `${window.location.origin}/?gathering=${gatheringId}`,
+          webUrl: `${window.location.origin}/?gathering=${gatheringId}`
+        }
+      }
+    ]
+  })
 }
 
 // 특가 할인 상세 보기
@@ -410,7 +603,30 @@ function renderDealDetailPanel() {
             <div class="bg-gray-50 rounded-lg p-4 mb-6">
               <h3 class="font-bold mb-2"><i class="fas fa-map-marker-alt text-red-500"></i> 장소</h3>
               <p class="font-medium">${deal.place_name}</p>
-              <p class="text-sm text-gray-600">${deal.place_address}</p>
+              <p class="text-sm text-gray-600 mb-3">${deal.place_address}</p>
+              
+              <!-- 네이버 정적 지도 이미지 -->
+              <div class="relative bg-white rounded-lg border-2 border-gray-200 mb-3 overflow-hidden cursor-pointer" style="height: 200px;" onclick="openNaverMapPlace(${deal.id})">
+                <img 
+                  src="/api/map/static?lat=${deal.place_lat || 37.5665}&lng=${deal.place_lng || 126.9780}&w=400&h=200&zoom=16"
+                  onerror="document.getElementById('deal-map-fallback-${deal.id}').style.display='flex'; this.style.display='none';"
+                  alt="${deal.place_name} 지도"
+                  class="w-full h-full object-cover"
+                />
+                
+                <!-- 지도 오버레이 안내 -->
+                <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-1 px-2 text-center">
+                  <i class="fas fa-hand-pointer"></i> 지도를 클릭하면 네이버 지도로 이동합니다
+                </div>
+                
+                <!-- 지도 로딩 실패 시 대체 UI -->
+                <div id="deal-map-fallback-${deal.id}" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50" style="display: none;">
+                  <i class="fas fa-map-marked-alt text-6xl text-green-600 mb-3"></i>
+                  <p class="text-gray-700 font-medium mb-1">${deal.place_name}</p>
+                  <p class="text-gray-500 text-sm px-4 text-center">${deal.place_address}</p>
+                  <p class="text-green-600 text-sm mt-3">👇 아래 버튼을 눌러 지도를 확인하세요</p>
+                </div>
+              </div>
             </div>
             
             <!-- 액션 버튼 -->
@@ -594,15 +810,32 @@ function renderGatheringCardSmall(gathering) {
 async function toggleGatheringLike(gatheringId) {
   if (!requireLogin(() => toggleGatheringLike(gatheringId))) return
   
-  const res = await fetch(`/api/gatherings/${gatheringId}/like`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
-  })
-  
-  const data = await res.json()
-  if (data.success) {
-    renderGatheringsPage()
+  try {
+    console.log('❤️ 좋아요 토글 요청:', { gathering_id: gatheringId, user_id: APP_STATE.currentUser.id })
+    
+    const res = await fetch(`/api/gatherings/${gatheringId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
+    })
+    
+    const data = await res.json()
+    console.log('❤️ 좋아요 토글 응답:', data)
+    
+    if (data.success) {
+      // 상세 페이지가 열려있으면 새로고침
+      if (APP_STATE.selectedGathering && APP_STATE.selectedGathering.id === gatheringId) {
+        await showGatheringDetail(gatheringId)
+      }
+      // 목록 페이지도 새로고침
+      renderGatheringsPage()
+    } else {
+      console.error('❌ 좋아요 토글 실패:', data.error)
+      alert('좋아요 처리에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 좋아요 토글 중 오류:', error)
+    alert('좋아요 처리 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
@@ -681,18 +914,44 @@ function renderGatheringDetailPanel() {
           <h3 class="font-bold mb-2"><i class="fas fa-map-marker-alt text-red-500"></i> 장소</h3>
           <p class="font-medium">${g.place_name}</p>
           <p class="text-sm text-gray-600 mb-3">${g.place_address}</p>
-          <div class="bg-gray-200 h-32 rounded flex items-center justify-center text-gray-500">
-            <i class="fas fa-map text-4xl"></i>
+          
+          <!-- 네이버 정적 지도 이미지 -->
+          <div class="relative bg-white rounded-lg border-2 border-gray-200 mb-3 overflow-hidden cursor-pointer" style="height: 200px;" onclick="openNaverMapForGathering(${g.id})">
+            <img 
+              src="/api/map/static?lat=${g.place_lat || 37.5665}&lng=${g.place_lng || 126.9780}&w=400&h=200&zoom=16"
+              onerror="document.getElementById('gathering-map-fallback-${g.id}').style.display='flex'; this.style.display='none';"
+              alt="${g.place_name} 지도"
+              class="w-full h-full object-cover"
+            />
+            
+            <!-- 지도 오버레이 안내 -->
+            <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs py-1 px-2 text-center">
+              <i class="fas fa-hand-pointer"></i> 지도를 클릭하면 네이버 지도로 이동합니다
+            </div>
+            
+            <!-- 지도 로딩 실패 시 대체 UI -->
+            <div id="gathering-map-fallback-${g.id}" class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-blue-50" style="display: none;">
+              <i class="fas fa-map-marked-alt text-6xl text-green-600 mb-3"></i>
+              <p class="text-gray-700 font-medium mb-1">${g.place_name}</p>
+              <p class="text-gray-500 text-sm px-4 text-center">${g.place_address}</p>
+              <p class="text-green-600 text-sm mt-3">👇 아래 버튼을 눌러 지도를 확인하세요</p>
+            </div>
           </div>
         </div>
         
-        <div class="flex items-center gap-2 mb-6">
+        <div class="flex items-center gap-2 mb-4">
           <button onclick="toggleGatheringLike(${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
             <i class="fas fa-heart"></i>
             <span>${g.like_count || 0}</span>
           </button>
+          <button onclick="shareGathering(${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 text-blue-600">
+            <i class="fas fa-share"></i>
+            <span>공유하기</span>
+          </button>
           <span class="px-4 py-2 rounded-lg bg-green-100 text-green-700 font-medium">모집 중</span>
         </div>
+        
+        <div class="mb-6"></div>
         
         ${applyButtonHtml}
       </div>
@@ -707,7 +966,7 @@ function closeGatheringDetail() {
 }
 
 // 동행 신청
-function applyGathering() {
+async function applyGathering() {
   if (!requireLogin(() => applyGathering())) return
   
   const g = APP_STATE.selectedGathering
@@ -715,24 +974,33 @@ function applyGathering() {
   const answer = prompt(g.question || '간단한 자기소개를 해주세요:')
   if (answer === null) return
   
-  fetch(`/api/gatherings/${g.id}/apply`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      user_id: APP_STATE.currentUser.id,
-      answer: answer
+  try {
+    console.log('🤝 동행 신청 요청:', { gathering_id: g.id, user_id: APP_STATE.currentUser.id })
+    
+    const res = await fetch(`/api/gatherings/${g.id}/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: APP_STATE.currentUser.id,
+        answer: answer
+      })
     })
-  })
-  .then(res => res.json())
-  .then(data => {
+    
+    const data = await res.json()
+    console.log('🤝 동행 신청 응답:', data)
+    
     if (data.success) {
       alert('동행 신청이 완료되었습니다. 작성자가 수락하면 카카오 채팅방으로 연결됩니다.')
       closeGatheringDetail()
       showGatheringDetail(g.id)
     } else {
-      alert(data.error || '동행 신청에 실패했습니다.')
+      console.error('❌ 동행 신청 실패:', data.error)
+      alert('동행 신청에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
     }
-  })
+  } catch (error) {
+    console.error('❌ 동행 신청 중 오류:', error)
+    alert('동행 신청 중 오류가 발생했습니다: ' + error.message)
+  }
 }
 
 // 같이가요 작성하기
@@ -812,36 +1080,48 @@ function closeCreateGathering() {
 async function submitGathering(e) {
   e.preventDefault()
   
-  const formData = new FormData(e.target)
-  const deal = APP_STATE.selectedDeal
-  
-  const data = {
-    user_id: APP_STATE.currentUser.id,
-    special_deal_id: deal.id,
-    title: formData.get('title'),
-    content: formData.get('content'),
-    date_text: formData.get('date_text'),
-    time_text: formData.get('time_text'),
-    place_name: deal.place_name,
-    place_address: deal.place_address,
-    max_people: parseInt(formData.get('max_people')),
-    question: formData.get('question')
-  }
-  
-  const res = await fetch('/api/gatherings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-  
-  const result = await res.json()
-  if (result.success) {
-    alert('같이가요 포스팅이 작성되었습니다!')
-    closeCreateGathering()
-    closeDealDetail()
-    navigateTo('gatherings')
-  } else {
-    alert('포스팅 작성에 실패했습니다.')
+  try {
+    const formData = new FormData(e.target)
+    const deal = APP_STATE.selectedDeal
+    
+    const data = {
+      user_id: APP_STATE.currentUser.id,
+      special_deal_id: deal.id,
+      title: formData.get('title'),
+      content: formData.get('content'),
+      date_text: formData.get('date_text'),
+      time_text: formData.get('time_text'),
+      place_name: deal.place_name,
+      place_address: deal.place_address,
+      place_lat: deal.place_lat || null,
+      place_lng: deal.place_lng || null,
+      max_people: parseInt(formData.get('max_people')),
+      question: formData.get('question')
+    }
+    
+    console.log('📝 같이가요 작성 요청:', data)
+    
+    const res = await fetch('/api/gatherings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    
+    const result = await res.json()
+    console.log('📝 같이가요 작성 응답:', result)
+    
+    if (result.success) {
+      alert('포스팅 작성에 성공했습니다.')
+      closeCreateGathering()
+      closeDealDetail()
+      navigateTo('gatherings')
+    } else {
+      console.error('❌ 작성 실패:', result.error)
+      alert('포스팅 작성에 실패했습니다: ' + (result.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 같이가요 작성 중 오류:', error)
+    alert('포스팅 작성 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
@@ -859,9 +1139,14 @@ async function renderMyPage() {
         <div class="p-8 text-center">
           <i class="fas fa-user-circle text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-600 mb-6">로그인이 필요합니다</p>
-          <button onclick="showLoginModal()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg">
+          <button onclick="showLoginModal()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg mb-4">
             <i class="fas fa-comment"></i> 카카오로 가입하기
           </button>
+          <div class="mt-4">
+            <button onclick="testLogin()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm">
+              🧪 테스트 계정으로 로그인
+            </button>
+          </div>
         </div>
       </div>
     `
@@ -1131,7 +1416,40 @@ function formatDate(dateStr) {
 }
 
 // ============================================
+// 딥링크 처리 (카카오톡 공유 링크)
+// ============================================
+function handleDeepLink() {
+  const urlParams = new URLSearchParams(window.location.search)
+  const dealId = urlParams.get('deal')
+  const gatheringId = urlParams.get('gathering')
+  
+  if (dealId) {
+    console.log('🔗 딥링크 감지: 특가 할인 #' + dealId)
+    // 특가 할인 페이지로 이동 후 상세보기
+    navigateTo('deals')
+    setTimeout(() => {
+      showDealDetail(parseInt(dealId))
+    }, 100)
+  } else if (gatheringId) {
+    console.log('🔗 딥링크 감지: 같이가요 #' + gatheringId)
+    // 같이가요 페이지로 이동 후 상세보기
+    navigateTo('gatherings')
+    setTimeout(() => {
+      showGatheringDetail(parseInt(gatheringId))
+    }, 100)
+  } else {
+    // 파라미터 없으면 기본 페이지로
+    navigateTo('deals')
+  }
+  
+  // URL 파라미터 제거 (깨끗한 URL 유지)
+  if (dealId || gatheringId) {
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+}
+
+// ============================================
 // 초기화
 // ============================================
 loadUser()
-navigateTo('deals')
+handleDeepLink()

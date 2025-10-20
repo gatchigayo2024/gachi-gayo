@@ -249,8 +249,8 @@ app.post('/api/gatherings', async (c) => {
     
     const result = await c.env.DB.prepare(`
       INSERT INTO gatherings 
-      (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, max_people, question)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, place_lat, place_lng, max_people, question)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.user_id,
       data.special_deal_id,
@@ -260,6 +260,8 @@ app.post('/api/gatherings', async (c) => {
       data.time_text,
       data.place_name,
       data.place_address,
+      data.place_lat || null,
+      data.place_lng || null,
       data.max_people || 4,
       data.question || ''
     ).run()
@@ -488,6 +490,7 @@ app.get('/api/my/liked-gatherings', async (c) => {
 // ============================================
 app.get('/', (c) => {
   const kakaoKey = c.env.KAKAO_JAVASCRIPT_KEY || ''
+  const naverMapClientId = c.env.NAVER_MAP_CLIENT_ID || ''
   
   return c.html(`
     <!DOCTYPE html>
@@ -499,8 +502,10 @@ app.get('/', (c) => {
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+        <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${naverMapClientId}"></script>
         <script>
           window.KAKAO_KEY = '${kakaoKey}';
+          window.NAVER_MAP_CLIENT_ID = '${naverMapClientId}';
         </script>
         <style>
           /* 이미지 슬라이더 */
@@ -639,6 +644,55 @@ app.get('/', (c) => {
     </body>
     </html>
   `)
+})
+
+// 네이버 Static Map API 프록시
+app.get('/api/map/static', async (c) => {
+  try {
+    const lat = c.req.query('lat') || '37.5665'
+    const lng = c.req.query('lng') || '126.9780'
+    const width = c.req.query('w') || '400'
+    const height = c.req.query('h') || '200'
+    const zoom = c.req.query('zoom') || '16'
+    const markers = c.req.query('markers') || `type:d|size:mid|pos:${lng} ${lat}`
+    
+    const clientId = c.env.NAVER_MAP_CLIENT_ID
+    const clientSecret = c.env.NAVER_MAP_CLIENT_SECRET
+    
+    if (!clientId || !clientSecret) {
+      return c.json({ success: false, error: 'Missing API credentials' }, 500)
+    }
+    
+    // 네이버 Static Map API 호출
+    const apiUrl = `https://maps.apigw.ntruss.com/map-static/v2/raster?` +
+      `w=${width}&h=${height}&center=${lng},${lat}&level=${zoom}&markers=${encodeURIComponent(markers)}`
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        'x-ncp-apigw-api-key-id': clientId,
+        'x-ncp-apigw-api-key': clientSecret
+      }
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Naver API error:', response.status, errorText)
+      return c.json({ success: false, error: 'Failed to fetch map', details: errorText, status: response.status }, 500)
+    }
+    
+    // 이미지를 그대로 반환
+    const imageBlob = await response.arrayBuffer()
+    
+    return new Response(imageBlob, {
+      headers: {
+        'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=86400' // 24시간 캐시
+      }
+    })
+  } catch (error) {
+    console.error('Static map error:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
 })
 
 export default app
