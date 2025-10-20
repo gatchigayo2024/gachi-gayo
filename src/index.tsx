@@ -313,11 +313,24 @@ app.delete('/api/gatherings/:id', async (c) => {
   try {
     const id = c.req.param('id')
     
-    await c.env.DB.prepare('DELETE FROM gatherings WHERE id = ?').bind(id).run()
+    console.log('🗑️ Deleting gathering:', id)
+    
+    // 관련 데이터 삭제 (외래 키 제약 조건 때문에)
+    // 1. 좋아요 삭제
+    await c.env.DB.prepare('DELETE FROM gathering_likes WHERE gathering_id = ?').bind(id).run()
+    
+    // 2. 동행 신청 삭제
+    await c.env.DB.prepare('DELETE FROM gathering_applications WHERE gathering_id = ?').bind(id).run()
+    
+    // 3. 같이가요 포스팅 삭제
+    const result = await c.env.DB.prepare('DELETE FROM gatherings WHERE id = ?').bind(id).run()
+    
+    console.log('✅ Gathering deleted:', result)
     
     return c.json({ success: true })
   } catch (error) {
-    return c.json({ success: false, error: 'Failed to delete gathering' }, 500)
+    console.error('❌ Delete gathering error:', error)
+    return c.json({ success: false, error: 'Failed to delete gathering: ' + error.message }, 500)
   }
 })
 

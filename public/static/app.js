@@ -1222,14 +1222,27 @@ function renderMyGatheringCard(gathering) {
 async function deleteGathering(id) {
   if (!confirm('정말 삭제하시겠습니까?')) return
   
-  const res = await fetch(`/api/gatherings/${id}`, { method: 'DELETE' })
-  const data = await res.json()
-  
-  if (data.success) {
-    alert('삭제되었습니다')
-    showMyGatherings()
-  } else {
-    alert('삭제에 실패했습니다')
+  try {
+    console.log('🗑️ 같이가요 삭제 요청:', { gathering_id: id })
+    
+    const res = await fetch(`/api/gatherings/${id}`, { 
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    const data = await res.json()
+    console.log('🗑️ 같이가요 삭제 응답:', data)
+    
+    if (data.success) {
+      alert('삭제되었습니다')
+      showMyGatherings()
+    } else {
+      console.error('❌ 삭제 실패:', data.error)
+      alert('삭제에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 삭제 중 오류:', error)
+    alert('삭제 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
