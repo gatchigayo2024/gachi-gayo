@@ -47,20 +47,20 @@ function showPhoneAuth(mode = 'login') {
   const isSignup = mode === 'signup'
   
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 flex items-center justify-between">
-          <h2 class="text-xl font-bold text-white">${isSignup ? '전화번호로 회원가입' : '전화번호로 로그인'}</h2>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <h2 class="text-lg font-bold text-white">${isSignup ? '전화번호로 회원가입' : '전화번호로 로그인'}</h2>
           <button onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
-            <i class="fas fa-times text-2xl"></i>
+            <i class="fas fa-times text-xl"></i>
           </button>
         </div>
         
-        <div class="p-6 space-y-6">
+        <div class="p-4 space-y-4 overflow-y-auto flex-1">
           <!-- 안내 메시지 -->
-          <div class="bg-blue-50 rounded-lg p-4 flex items-start space-x-3">
-            <i class="fas fa-info-circle text-blue-500 text-xl mt-0.5"></i>
+          <div class="bg-blue-50 rounded-lg p-3 flex items-start space-x-2">
+            <i class="fas fa-info-circle text-blue-500 text-lg mt-0.5 flex-shrink-0"></i>
             <p class="text-sm text-blue-800">${isSignup ? '전화번호 인증으로 간편하게 가입하세요.' : '가입한 전화번호로 로그인하세요.'}</p>
           </div>
           
@@ -72,7 +72,7 @@ function showPhoneAuth(mode = 'login') {
             <input 
               type="text" 
               id="nameInput" 
-              class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" 
+              class="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:border-blue-500 focus:outline-none" 
               placeholder="홍길동"
             >
           </div>
@@ -86,14 +86,14 @@ function showPhoneAuth(mode = 'login') {
               <input 
                 type="tel" 
                 id="phoneInput" 
-                class="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" 
+                class="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:border-blue-500 focus:outline-none" 
                 placeholder="01012345678"
                 maxlength="11"
                 onkeypress="if(event.key === 'Enter') sendAuthCode()"
               >
               <button 
                 onclick="sendAuthCode()"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg whitespace-nowrap transition-colors shadow-md"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
               >
                 발송
               </button>
@@ -109,19 +109,19 @@ function showPhoneAuth(mode = 'login') {
               <input 
                 type="text" 
                 id="codeInput" 
-                class="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-center text-2xl tracking-widest focus:border-green-500 focus:outline-none font-mono" 
+                class="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-center text-xl tracking-widest focus:border-green-500 focus:outline-none font-mono" 
                 placeholder="000000"
                 maxlength="6"
                 onkeypress="if(event.key === 'Enter') verifyAuthCode()"
               >
               <button 
                 onclick="verifyAuthCode()"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg whitespace-nowrap transition-colors shadow-md"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
               >
                 확인
               </button>
             </div>
-            <div class="flex justify-between items-center mt-3">
+            <div class="flex justify-between items-center mt-2">
               <span id="timerDisplay" class="text-sm font-semibold text-gray-600"></span>
               <button 
                 onclick="resendAuthCode()"
