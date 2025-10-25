@@ -15,32 +15,148 @@ app.use('/static/*', serveStatic({ root: './public' }))
 // API 라우트
 // ============================================
 
-// 인증 관련 API
-app.post('/api/auth/login', async (c) => {
+// ============================================
+// SMS 인증 API (알리고)
+// ============================================
+
+// 인증번호 발송
+app.post('/api/sms/send', async (c) => {
   try {
-    const { kakao_id, name, phone } = await c.req.json()
+    const { phone } = await c.req.json()
     
-    // 사용자 조회 또는 생성
+    // 전화번호 유효성 검사
+    if (!phone || !/^01[0-9]{8,9}$/.test(phone.replace(/-/g, ''))) {
+      return c.json({ success: false, error: '올바른 전화번호를 입력해주세요.' }, 400)
+    }
+    
+    // 6자리 랜덤 인증번호 생성
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    
+    // 만료 시간 (3분 후)
+    const expiresAt = Math.floor(Date.now() / 1000) + 180
+    
+    // DB에 인증번호 저장
+    await c.env.DB.prepare(
+      'INSERT INTO sms_verifications (phone, code, expires_at) VALUES (?, ?, ?)'
+    ).bind(phone, code, expiresAt).run()
+    
+    // 알리고 SMS API 호출
+    const ALIGO_API_KEY = c.env.ALIGO_API_KEY || ''
+    const ALIGO_USER_ID = c.env.ALIGO_USER_ID || ''
+    const ALIGO_SENDER = c.env.ALIGO_SENDER || ''
+    
+    const formData = new URLSearchParams()
+    formData.append('key', ALIGO_API_KEY)
+    formData.append('user_id', ALIGO_USER_ID)
+    formData.append('sender', ALIGO_SENDER)
+    formData.append('receiver', phone)
+    formData.append('msg', `[같이가요] 인증번호는 [${code}] 입니다. 3분 이내에 입력해주세요.`)
+    formData.append('msg_type', 'SMS')
+    formData.append('title', '같이가요 인증번호')
+    
+    const response = await fetch('https://apis.aligo.in/send/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: formData.toString()
+    })
+    
+    const result = await response.json()
+    
+    if (result.result_code === '1') {
+      console.log('✅ SMS 발송 성공:', phone)
+      return c.json({ success: true, expiresAt })
+    } else {
+      console.error('❌ SMS 발송 실패:', result)
+      return c.json({ success: false, error: 'SMS 발송에 실패했습니다.' }, 500)
+    }
+  } catch (error) {
+    console.error('SMS send error:', error)
+    return c.json({ success: false, error: 'SMS 발송 중 오류가 발생했습니다.' }, 500)
+  }
+})
+
+// 인증번호 확인
+app.post('/api/sms/verify', async (c) => {
+  try {
+    const { phone, code } = await c.req.json()
+    
+    if (!phone || !code) {
+      return c.json({ success: false, error: '전화번호와 인증번호를 입력해주세요.' }, 400)
+    }
+    
+    // 현재 시간
+    const now = Math.floor(Date.now() / 1000)
+    
+    // DB에서 유효한 인증번호 조회
+    const verification = await c.env.DB.prepare(`
+      SELECT * FROM sms_verifications 
+      WHERE phone = ? 
+        AND code = ? 
+        AND verified = 0 
+        AND expires_at > ?
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `).bind(phone, code, now).first()
+    
+    if (!verification) {
+      return c.json({ success: false, error: '인증번호가 올바르지 않거나 만료되었습니다.' }, 400)
+    }
+    
+    // 인증 완료 처리
+    await c.env.DB.prepare(
+      'UPDATE sms_verifications SET verified = 1 WHERE id = ?'
+    ).bind(verification.id).run()
+    
+    console.log('✅ 인증 성공:', phone)
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('SMS verify error:', error)
+    return c.json({ success: false, error: '인증 확인 중 오류가 발생했습니다.' }, 500)
+  }
+})
+
+// ============================================
+// 전화번호 기반 인증 API
+// ============================================
+
+// 전화번호로 회원가입 또는 로그인
+app.post('/api/auth/phone-login', async (c) => {
+  try {
+    const { phone, name } = await c.req.json()
+    
+    if (!phone) {
+      return c.json({ success: false, error: '전화번호를 입력해주세요.' }, 400)
+    }
+    
+    // 전화번호로 사용자 조회
     const existingUser = await c.env.DB.prepare(
-      'SELECT * FROM users WHERE kakao_id = ?'
-    ).bind(kakao_id).first()
+      'SELECT * FROM users WHERE phone = ?'
+    ).bind(phone).first()
 
     if (existingUser) {
-      return c.json({ success: true, user: existingUser })
+      // 기존 사용자 로그인
+      return c.json({ success: true, user: existingUser, isNewUser: false })
     }
 
-    // 새 사용자 생성
+    // 신규 사용자 회원가입
+    if (!name) {
+      return c.json({ success: false, error: '이름을 입력해주세요.' }, 400)
+    }
+    
     const result = await c.env.DB.prepare(
-      'INSERT INTO users (kakao_id, name, phone) VALUES (?, ?, ?)'
-    ).bind(kakao_id, name, phone).run()
+      'INSERT INTO users (phone, name, phone_verified) VALUES (?, ?, 1)'
+    ).bind(phone, name).run()
 
     const newUser = await c.env.DB.prepare(
       'SELECT * FROM users WHERE id = ?'
     ).bind(result.meta.last_row_id).first()
 
-    return c.json({ success: true, user: newUser })
+    return c.json({ success: true, user: newUser, isNewUser: true })
   } catch (error) {
-    return c.json({ success: false, error: 'Login failed' }, 500)
+    console.error('Phone login error:', error)
+    return c.json({ success: false, error: '로그인 중 오류가 발생했습니다.' }, 500)
   }
 })
 

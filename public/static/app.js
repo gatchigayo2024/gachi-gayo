@@ -8,7 +8,13 @@ const APP_STATE = {
   gatherings: [],
   selectedDeal: null,
   selectedGathering: null,
-  loginCallback: null
+  loginCallback: null,
+  smsVerification: {
+    phone: null,
+    expiresAt: null,
+    timer: null,
+    callback: null
+  }
 }
 
 // 로컬 스토리지에서 사용자 정보 로드
@@ -27,27 +33,403 @@ function saveUser(user) {
 
 // 사용자 로그아웃
 function logout() {
-  // 카카오 로그아웃
-  if (Kakao.isInitialized() && Kakao.Auth.getAccessToken()) {
-    Kakao.Auth.logout(function() {
-      console.log('✅ 카카오 로그아웃 완료')
-    })
-  }
-  
   APP_STATE.currentUser = null
   localStorage.removeItem('user')
   navigateTo('my')
 }
 
 // ============================================
-// 카카오 로그인
+// SMS 전화번호 인증
 // ============================================
-// 카카오 SDK 초기화
-if (window.KAKAO_KEY && !Kakao.isInitialized()) {
-  Kakao.init(window.KAKAO_KEY)
-  console.log('✅ Kakao SDK 초기화 성공:', Kakao.isInitialized())
-} else if (!window.KAKAO_KEY) {
-  console.warn('⚠️ KAKAO_KEY가 설정되지 않았습니다.')
+
+// SMS 인증 팝업 표시 (회원가입/로그인)
+function showPhoneAuth(mode = 'login') {
+  const isSignup = mode === 'signup'
+  
+  const html = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <!-- 헤더 -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4 flex items-center justify-between">
+          <h2 class="text-xl font-bold text-white">${isSignup ? '전화번호로 회원가입' : '전화번호로 로그인'}</h2>
+          <button onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        
+        <div class="p-6 space-y-6">
+          <!-- 안내 메시지 -->
+          <div class="bg-blue-50 rounded-lg p-4 flex items-start space-x-3">
+            <i class="fas fa-info-circle text-blue-500 text-xl mt-0.5"></i>
+            <p class="text-sm text-blue-800">${isSignup ? '전화번호 인증으로 간편하게 가입하세요.' : '가입한 전화번호로 로그인하세요.'}</p>
+          </div>
+          
+          <!-- 이름 입력 (회원가입 시만) -->
+          <div id="nameInputSection" class="${isSignup ? '' : 'hidden'}">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-user mr-1"></i>이름
+            </label>
+            <input 
+              type="text" 
+              id="nameInput" 
+              class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" 
+              placeholder="홍길동"
+            >
+          </div>
+          
+          <!-- 전화번호 입력 -->
+          <div id="phoneInputSection">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-mobile-alt mr-1"></i>전화번호
+            </label>
+            <div class="flex space-x-2">
+              <input 
+                type="tel" 
+                id="phoneInput" 
+                class="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-blue-500 focus:outline-none" 
+                placeholder="01012345678"
+                maxlength="11"
+                onkeypress="if(event.key === 'Enter') sendAuthCode()"
+              >
+              <button 
+                onclick="sendAuthCode()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg whitespace-nowrap transition-colors shadow-md"
+              >
+                발송
+              </button>
+            </div>
+          </div>
+          
+          <!-- 인증번호 입력 (초기 숨김) -->
+          <div id="codeInputSection" class="hidden">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              <i class="fas fa-key mr-1"></i>인증번호
+            </label>
+            <div class="flex space-x-2">
+              <input 
+                type="text" 
+                id="codeInput" 
+                class="flex-1 border-2 border-gray-300 rounded-lg px-4 py-3 text-center text-2xl tracking-widest focus:border-green-500 focus:outline-none font-mono" 
+                placeholder="000000"
+                maxlength="6"
+                onkeypress="if(event.key === 'Enter') verifyAuthCode()"
+              >
+              <button 
+                onclick="verifyAuthCode()"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg whitespace-nowrap transition-colors shadow-md"
+              >
+                확인
+              </button>
+            </div>
+            <div class="flex justify-between items-center mt-3">
+              <span id="timerDisplay" class="text-sm font-semibold text-gray-600"></span>
+              <button 
+                onclick="resendAuthCode()"
+                class="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+              >
+                <i class="fas fa-redo mr-1"></i>재발송
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  
+  document.body.insertAdjacentHTML('beforeend', html)
+  APP_STATE.smsVerification.mode = mode
+  
+  // 입력란에 포커스
+  setTimeout(() => {
+    if (isSignup) {
+      document.getElementById('nameInput')?.focus()
+    } else {
+      document.getElementById('phoneInput')?.focus()
+    }
+  }, 100)
+}
+
+// SMS 인증 팝업 닫기
+function closePhoneAuth() {
+  if (APP_STATE.smsVerification.timer) {
+    clearInterval(APP_STATE.smsVerification.timer)
+  }
+  
+  APP_STATE.smsVerification = {
+    phone: null,
+    expiresAt: null,
+    timer: null,
+    callback: null
+  }
+  
+  document.getElementById('phoneAuthOverlay')?.remove()
+}
+
+// 인증번호 발송
+async function sendAuthCode() {
+  const mode = APP_STATE.smsVerification.mode
+  const nameInput = document.getElementById('nameInput')
+  const phoneInput = document.getElementById('phoneInput')
+  const phone = phoneInput.value.replace(/-/g, '')
+  
+  // 회원가입 모드에서 이름 확인
+  if (mode === 'signup') {
+    const name = nameInput?.value.trim()
+    if (!name) {
+      alert('이름을 입력해주세요.')
+      nameInput?.focus()
+      return
+    }
+    APP_STATE.smsVerification.name = name
+  }
+  
+  // 전화번호 유효성 검사
+  if (!/^01[0-9]{8,9}$/.test(phone)) {
+    alert('올바른 전화번호를 입력해주세요.\n(예: 01012345678)')
+    phoneInput.focus()
+    return
+  }
+  
+  try {
+    const res = await fetch('/api/sms/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      APP_STATE.smsVerification.phone = phone
+      APP_STATE.smsVerification.expiresAt = data.expiresAt
+      
+      // UI 전환
+      document.getElementById('nameInputSection')?.classList.add('hidden')
+      document.getElementById('phoneInputSection').classList.add('hidden')
+      document.getElementById('codeInputSection').classList.remove('hidden')
+      document.getElementById('codeInput').focus()
+      
+      // 타이머 시작
+      startAuthTimer()
+      
+      // 성공 알림
+      const successAlert = document.createElement('div')
+      successAlert.className = 'bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center space-x-2'
+      successAlert.innerHTML = '<i class="fas fa-check-circle text-green-500"></i><span class="text-sm text-green-800">인증번호가 발송되었습니다.</span>'
+      document.getElementById('codeInputSection').insertAdjacentElement('beforebegin', successAlert)
+      setTimeout(() => successAlert.remove(), 3000)
+    } else {
+      alert(data.error || 'SMS 발송에 실패했습니다.')
+    }
+  } catch (error) {
+    console.error('SMS 발송 오류:', error)
+    alert('SMS 발송 중 오류가 발생했습니다.')
+  }
+}
+
+// 인증번호 재발송
+async function resendAuthCode() {
+  document.getElementById('phoneInputSection').classList.remove('hidden')
+  document.getElementById('codeInputSection').classList.add('hidden')
+  document.getElementById('codeInput').value = ''
+  
+  if (APP_STATE.smsVerification.timer) {
+    clearInterval(APP_STATE.smsVerification.timer)
+  }
+}
+
+// 인증번호 확인 및 로그인/회원가입
+async function verifyAuthCode() {
+  const codeInput = document.getElementById('codeInput')
+  const code = codeInput.value
+  
+  if (!code || code.length !== 6) {
+    alert('6자리 인증번호를 입력해주세요.')
+    codeInput.focus()
+    return
+  }
+  
+  try {
+    // 1단계: 인증번호 확인
+    const verifyRes = await fetch('/api/sms/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: APP_STATE.smsVerification.phone,
+        code: code
+      })
+    })
+    
+    const verifyData = await verifyRes.json()
+    
+    if (!verifyData.success) {
+      alert(verifyData.error || '인증번호가 올바르지 않습니다.')
+      codeInput.value = ''
+      codeInput.focus()
+      return
+    }
+    
+    // 2단계: 회원가입/로그인
+    const loginRes = await fetch('/api/auth/phone-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: APP_STATE.smsVerification.phone,
+        name: APP_STATE.smsVerification.name
+      })
+    })
+    
+    const loginData = await loginRes.json()
+    
+    if (loginData.success) {
+      // 로컬 사용자 정보 저장
+      saveUser(loginData.user)
+      
+      // 모달 닫기
+      closePhoneAuth()
+      
+      // 성공 메시지
+      if (loginData.isNewUser) {
+        showSuccessModal('회원가입이 완료되었습니다!<br>같이가요를 시작해보세요.', () => {
+          // 로그인 콜백 실행
+          if (APP_STATE.loginCallback) {
+            APP_STATE.loginCallback()
+            APP_STATE.loginCallback = null
+          } else {
+            renderCurrentPage()
+          }
+        })
+      } else {
+        // 로그인 콜백 실행
+        if (APP_STATE.loginCallback) {
+          APP_STATE.loginCallback()
+          APP_STATE.loginCallback = null
+        } else {
+          renderCurrentPage()
+        }
+      }
+    } else {
+      alert(loginData.error || '로그인에 실패했습니다.')
+    }
+  } catch (error) {
+    console.error('인증 확인 오류:', error)
+    alert('인증 확인 중 오류가 발생했습니다.')
+  }
+}
+
+// 타이머 시작
+function startAuthTimer() {
+  if (APP_STATE.smsVerification.timer) {
+    clearInterval(APP_STATE.smsVerification.timer)
+  }
+  
+  APP_STATE.smsVerification.timer = setInterval(() => {
+    const now = Math.floor(Date.now() / 1000)
+    const remaining = APP_STATE.smsVerification.expiresAt - now
+    
+    const timerDisplay = document.getElementById('timerDisplay')
+    if (!timerDisplay) return
+    
+    if (remaining <= 0) {
+      clearInterval(APP_STATE.smsVerification.timer)
+      timerDisplay.textContent = '인증 시간 만료'
+      timerDisplay.className = 'text-sm font-semibold text-red-600'
+    } else {
+      const minutes = Math.floor(remaining / 60)
+      const seconds = remaining % 60
+      timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`
+      timerDisplay.className = remaining <= 30 ? 'text-sm font-semibold text-red-600' : 'text-sm font-semibold text-gray-600'
+    }
+  }, 1000)
+}
+
+// ============================================
+// 공통 모달 함수
+// ============================================
+
+// 성공/안내 모달 표시
+function showSuccessModal(message, onConfirm) {
+  const html = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="successModal">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
+        <div class="p-6 text-center">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-check text-3xl text-green-600"></i>
+          </div>
+          <p class="text-gray-800 text-lg mb-6">${message}</p>
+          <button 
+            onclick="closeSuccessModal()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+  
+  document.body.insertAdjacentHTML('beforeend', html)
+  
+  window.closeSuccessModal = () => {
+    document.getElementById('successModal')?.remove()
+    if (onConfirm) onConfirm()
+  }
+}
+
+// 질문 답변 모달 표시
+function showQuestionModal(question, onSubmit) {
+  const html = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="questionModal">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
+          <h2 class="text-xl font-bold text-white">작성자의 질문</h2>
+        </div>
+        <div class="p-6">
+          <div class="bg-purple-50 rounded-lg p-4 mb-4">
+            <p class="text-gray-800 font-medium">${question}</p>
+          </div>
+          <textarea 
+            id="answerInput"
+            class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
+            rows="4"
+            placeholder="답변을 입력하세요..."
+          ></textarea>
+          <div class="flex space-x-2 mt-4">
+            <button 
+              onclick="closeQuestionModal()"
+              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
+            >
+              취소
+            </button>
+            <button 
+              onclick="submitQuestion()"
+              class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              제출
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  
+  document.body.insertAdjacentHTML('beforeend', html)
+  
+  window.submitQuestion = () => {
+    const answer = document.getElementById('answerInput').value.trim()
+    if (!answer) {
+      alert('답변을 입력해주세요.')
+      return
+    }
+    document.getElementById('questionModal')?.remove()
+    if (onSubmit) onSubmit(answer)
+  }
+  
+  window.closeQuestionModal = () => {
+    document.getElementById('questionModal')?.remove()
+  }
+  
+  setTimeout(() => document.getElementById('answerInput')?.focus(), 100)
 }
 
 // ============================================
@@ -238,19 +620,10 @@ function kakaoLoginReal() {
 }
 */
 
-function showLoginModal(callback) {
-  APP_STATE.loginCallback = callback
-  document.getElementById('loginModal').classList.add('active')
-}
-
-function closeLoginModal() {
-  document.getElementById('loginModal').classList.remove('active')
-  APP_STATE.loginCallback = null
-}
-
 function requireLogin(callback) {
   if (!APP_STATE.currentUser) {
-    showLoginModal(callback)
+    APP_STATE.loginCallback = callback
+    showPhoneAuth('signup')
     return false
   }
   return true
@@ -779,10 +1152,13 @@ function closeDealDetail() {
 function requestGroupChatForDeal() {
   if (!requireLogin(() => requestGroupChatForDeal())) return
   
-  if (confirm('같이가요 채팅방 생성을 신청하시겠습니까? 관리자가 확인 후 연락드립니다.')) {
-    // TODO: 관리자에게 이메일 발송
-    alert('채팅방 생성이 신청되었습니다. 관리자가 확인 후 연락드리겠습니다.')
-  }
+  showSuccessModal(
+    '지인들과의 같이가요 채팅방 생성을 신청하시겠습니까?<br>관리자가 확인 후 문자로 안내해드립니다.',
+    () => {
+      // TODO: 관리자에게 알림 발송
+      console.log('지인들과 같이가기 신청 완료')
+    }
+  )
 }
 
 // ============================================
@@ -1085,53 +1461,42 @@ function closeGatheringDetail() {
 async function applyGathering() {
   if (!requireLogin(() => applyGathering())) return
   
-  // 채널 친구 추가 유도
-  const channelAdded = await promptChannelAdd('동행 신청')
-  if (!channelAdded && !APP_STATE.currentUser.kakao_channel_added) {
-    // 채널 추가 안 하면 진행 중단
-    return
-  }
-  
   const g = APP_STATE.selectedGathering
   
-  const answer = prompt(g.question || '간단한 자기소개를 해주세요:')
-  if (answer === null) return
-  
-  try {
-    console.log('🤝 동행 신청 요청:', { gathering_id: g.id, user_id: APP_STATE.currentUser.id })
-    
-    const res = await fetch(`/api/gatherings/${g.id}/apply`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        user_id: APP_STATE.currentUser.id,
-        answer: answer
-      })
-    })
-    
-    const data = await res.json()
-    console.log('🤝 동행 신청 응답:', data)
-    
-    if (data.success) {
-      alert('동행 신청이 완료되었습니다.\n작성자에게 알림이 전송되었습니다.')
-      closeGatheringDetail()
-      showGatheringDetail(g.id)
+  // 질문 답변 모달 표시
+  showQuestionModal(g.question || '간단한 자기소개를 해주세요', async (answer) => {
+    try {
+      console.log('🤝 동행 신청 요청:', { gathering_id: g.id, user_id: APP_STATE.currentUser.id })
       
-      // 관리자에게 이메일 알림 발송
-      await sendAdminEmail('application_submitted', {
-        user_name: APP_STATE.currentUser.name,
-        gathering_title: g.title,
-        gathering_id: g.id,
-        author_name: g.user_name
+      const res = await fetch(`/api/gatherings/${g.id}/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: APP_STATE.currentUser.id,
+          answer: answer
+        })
       })
-    } else {
-      console.error('❌ 동행 신청 실패:', data.error)
-      alert('동행 신청에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+      
+      const data = await res.json()
+      console.log('🤝 동행 신청 응답:', data)
+      
+      if (data.success) {
+        closeGatheringDetail()
+        showSuccessModal(
+          '동행 신청이 완료되었습니다.<br>작성자가 수락 시 문자로 안내해드립니다.',
+          () => {
+            showGatheringDetail(g.id)
+          }
+        )
+      } else {
+        console.error('❌ 동행 신청 실패:', data.error)
+        alert('동행 신청에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+      }
+    } catch (error) {
+      console.error('❌ 동행 신청 중 오류:', error)
+      alert('동행 신청 중 오류가 발생했습니다: ' + error.message)
     }
-  } catch (error) {
-    console.error('❌ 동행 신청 중 오류:', error)
-    alert('동행 신청 중 오류가 발생했습니다: ' + error.message)
-  }
+  })
 }
 
 // 같이가요 작성하기
@@ -1211,13 +1576,6 @@ function closeCreateGathering() {
 async function submitGathering(e) {
   e.preventDefault()
   
-  // 채널 친구 추가 유도
-  const channelAdded = await promptChannelAdd('같이가요 포스팅 작성')
-  if (!channelAdded && !APP_STATE.currentUser.kakao_channel_added) {
-    // 채널 추가 안 하면 진행 중단
-    return
-  }
-  
   try {
     const formData = new FormData(e.target)
     const deal = APP_STATE.selectedDeal
@@ -1249,17 +1607,14 @@ async function submitGathering(e) {
     console.log('📝 같이가요 작성 응답:', result)
     
     if (result.success) {
-      alert('포스팅 작성에 성공했습니다.')
       closeCreateGathering()
       closeDealDetail()
-      navigateTo('gatherings')
-      
-      // 관리자에게 이메일 알림 발송
-      await sendAdminEmail('gathering_created', {
-        user_name: APP_STATE.currentUser.name,
-        gathering_title: data.title,
-        gathering_id: result.id
-      })
+      showSuccessModal(
+        '포스팅 작성에 성공했습니다.<br>동행 신청자 발생 시 문자로 안내해드립니다.',
+        () => {
+          navigateTo('gatherings')
+        }
+      )
     } else {
       console.error('❌ 작성 실패:', result.error)
       alert('포스팅 작성에 실패했습니다: ' + (result.error || '알 수 없는 오류'))
@@ -1284,8 +1639,8 @@ async function renderMyPage() {
         <div class="p-8 text-center">
           <i class="fas fa-user-circle text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-600 mb-6">로그인이 필요합니다</p>
-          <button onclick="kakaoLogin()" class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 px-6 rounded-lg">
-            <i class="fas fa-comment"></i> 카카오로 가입하기
+          <button onclick="showPhoneAuth('login')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">
+            <i class="fas fa-mobile-alt"></i> 전화번호로 로그인
           </button>
         </div>
       </div>

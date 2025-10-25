@@ -7,9 +7,11 @@
     "nodejs_compat"
   ],
   "vars": {
-    "KAKAO_JAVASCRIPT_KEY": "cc9f793cb0ef86ded30ae5b04beea34b",
     "NAVER_MAP_CLIENT_ID": "wj2ya61n2i",
-    "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog"
+    "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog",
+    "ALIGO_API_KEY": "",
+    "ALIGO_USER_ID": "",
+    "ALIGO_SENDER": ""
   },
   "d1_databases": [
     {
