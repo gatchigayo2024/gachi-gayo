@@ -512,6 +512,7 @@ app.get('/', (c) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>같이가요 - 특가 할인과 함께하는 모임</title>
+        <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
@@ -521,6 +522,11 @@ app.get('/', (c) => {
           window.NAVER_MAP_CLIENT_ID = '${naverMapClientId}';
         </script>
         <style>
+          /* Pretendard 폰트 적용 */
+          * {
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+          }
+          
           /* 이미지 슬라이더 */
           .slider-container {
             position: relative;
@@ -705,6 +711,79 @@ app.get('/api/map/static', async (c) => {
   } catch (error) {
     console.error('Static map error:', error)
     return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+// 카카오톡 채널 친구 추가 상태 저장
+app.post('/api/user/channel-added', async (c) => {
+  try {
+    const { user_id } = await c.req.json()
+    
+    await c.env.DB.prepare(
+      'UPDATE users SET kakao_channel_added = 1 WHERE id = ?'
+    ).bind(user_id).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Channel added error:', error)
+    return c.json({ success: false, error: 'Failed to save channel status' }, 500)
+  }
+})
+
+// 관리자 이메일 알림
+app.post('/api/admin/email-notification', async (c) => {
+  try {
+    const { type, data } = await c.req.json()
+    
+    const ADMIN_EMAIL = 'gatchigayo2024@gmail.com'
+    
+    let subject = ''
+    let message = ''
+    
+    if (type === 'gathering_created') {
+      subject = '[같이가요] 새로운 포스팅 작성'
+      message = `
+새로운 같이가요 포스팅이 작성되었습니다.
+
+작성자: ${data.user_name}
+제목: ${data.gathering_title}
+포스팅 ID: ${data.gathering_id}
+
+카카오톡 채널로 메시지를 보내세요:
+https://center-pf.kakao.com/
+
+프로덕션 확인:
+https://gachi-gayo.pages.dev
+      `
+    } else if (type === 'application_submitted') {
+      subject = '[같이가요] 새로운 동행 신청'
+      message = `
+새로운 동행 신청이 있습니다.
+
+신청자: ${data.user_name}
+포스팅: ${data.gathering_title}
+작성자: ${data.author_name}
+포스팅 ID: ${data.gathering_id}
+
+카카오톡 채널로 작성자와 신청자에게 메시지를 보내세요:
+https://center-pf.kakao.com/
+
+프로덕션 확인:
+https://gachi-gayo.pages.dev
+      `
+    }
+    
+    // TODO: 실제 이메일 발송 구현
+    // 현재는 로그만 출력
+    console.log('📧 관리자 이메일 알림:', { to: ADMIN_EMAIL, subject, message })
+    
+    // 실제 프로덕션에서는 SendGrid, Mailgun 등의 서비스 사용
+    // 예: await sendEmail({ to: ADMIN_EMAIL, subject, text: message })
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Email notification error:', error)
+    return c.json({ success: false, error: 'Failed to send notification' }, 500)
   }
 })
 

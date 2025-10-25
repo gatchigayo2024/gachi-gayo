@@ -257,89 +257,6 @@ function requireLogin(callback) {
 }
 
 // ============================================
-// 카카오톡 채널 친구 추가
-// ============================================
-const KAKAO_CHANNEL_ID = '_qxcCln'  // 같이가요 카카오톡 채널
-
-// 카카오톡 채널 친구 추가 팝업
-function addKakaoChannel() {
-  return new Promise((resolve) => {
-    if (!Kakao.isInitialized()) {
-      alert('카카오 SDK가 초기화되지 않았습니다.')
-      resolve(false)
-      return
-    }
-    
-    try {
-      Kakao.Channel.addChannel({
-        channelPublicId: KAKAO_CHANNEL_ID,
-        success: function() {
-          console.log('✅ 카카오톡 채널 친구 추가 성공')
-          resolve(true)
-        },
-        fail: function(error) {
-          console.error('❌ 카카오톡 채널 친구 추가 실패:', error)
-          resolve(false)
-        }
-      })
-    } catch (error) {
-      console.error('❌ 카카오톡 채널 추가 오류:', error)
-      alert('카카오톡 채널 추가 중 오류가 발생했습니다.')
-      resolve(false)
-    }
-  })
-}
-
-// 채널 친구 추가 상태 저장
-async function saveChannelAddedStatus() {
-  if (!APP_STATE.currentUser) return
-  
-  try {
-    const res = await fetch('/api/user/channel-added', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
-    })
-    
-    const data = await res.json()
-    if (data.success) {
-      console.log('✅ 채널 친구 추가 상태 저장 완료')
-      // 로컬 사용자 정보 업데이트
-      APP_STATE.currentUser.kakao_channel_added = 1
-      saveUser(APP_STATE.currentUser)
-    }
-  } catch (error) {
-    console.error('❌ 채널 상태 저장 실패:', error)
-  }
-}
-
-// 채널 친구 추가 유도 및 처리
-async function promptChannelAdd(actionName) {
-  if (!APP_STATE.currentUser) return false
-  
-  // 이미 채널 추가했으면 스킵
-  if (APP_STATE.currentUser.kakao_channel_added) {
-    return true
-  }
-  
-  const message = `${actionName}을(를) 위해 카카오톡 채널 친구 추가가 필요합니다.\n\n알림을 받고 단톡방 초대 링크를 받으실 수 있습니다.`
-  
-  if (confirm(message)) {
-    const added = await addKakaoChannel()
-    if (added) {
-      await saveChannelAddedStatus()
-      alert('카카오톡 채널 친구 추가가 완료되었습니다!\n관리자가 알림과 단톡방 링크를 보내드립니다.')
-      return true
-    } else {
-      alert('카카오톡 채널 친구 추가가 필요합니다.\n나중에 다시 시도해주세요.')
-      return false
-    }
-  }
-  
-  return false
-}
-
-// ============================================
 // 네비게이션
 // ============================================
 function navigateTo(page) {
@@ -643,7 +560,7 @@ function renderDealDetailPanel() {
       const html = `
         <div class="detail-panel active" id="dealDetail">
           <!-- 헤더 -->
-          <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
+          <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center z-10">
             <button onclick="closeDealDetail()" class="mr-3">
               <i class="fas fa-times text-xl"></i>
             </button>
@@ -990,7 +907,7 @@ function renderGatheringDetailPanel() {
   const html = `
     <div class="detail-panel active" id="gatheringDetail">
       <!-- 헤더 -->
-      <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
+      <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center z-10">
         <button onclick="closeGatheringDetail()" class="mr-3">
           <i class="fas fa-times text-xl"></i>
         </button>
@@ -1085,13 +1002,6 @@ function closeGatheringDetail() {
 async function applyGathering() {
   if (!requireLogin(() => applyGathering())) return
   
-  // 채널 친구 추가 유도
-  const channelAdded = await promptChannelAdd('동행 신청')
-  if (!channelAdded && !APP_STATE.currentUser.kakao_channel_added) {
-    // 채널 추가 안 하면 진행 중단
-    return
-  }
-  
   const g = APP_STATE.selectedGathering
   
   const answer = prompt(g.question || '간단한 자기소개를 해주세요:')
@@ -1113,17 +1023,9 @@ async function applyGathering() {
     console.log('🤝 동행 신청 응답:', data)
     
     if (data.success) {
-      alert('동행 신청이 완료되었습니다.\n작성자에게 알림이 전송되었습니다.')
+      alert('동행 신청이 완료되었습니다. 작성자가 수락하면 카카오 채팅방으로 연결됩니다.')
       closeGatheringDetail()
       showGatheringDetail(g.id)
-      
-      // 관리자에게 이메일 알림 발송
-      await sendAdminEmail('application_submitted', {
-        user_name: APP_STATE.currentUser.name,
-        gathering_title: g.title,
-        gathering_id: g.id,
-        author_name: g.user_name
-      })
     } else {
       console.error('❌ 동행 신청 실패:', data.error)
       alert('동행 신청에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
@@ -1142,7 +1044,7 @@ function showCreateGathering() {
   
   const html = `
     <div class="detail-panel active" id="createGathering">
-      <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
+      <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center z-10">
         <button onclick="closeCreateGathering()" class="mr-3">
           <i class="fas fa-times text-xl"></i>
         </button>
@@ -1211,13 +1113,6 @@ function closeCreateGathering() {
 async function submitGathering(e) {
   e.preventDefault()
   
-  // 채널 친구 추가 유도
-  const channelAdded = await promptChannelAdd('같이가요 포스팅 작성')
-  if (!channelAdded && !APP_STATE.currentUser.kakao_channel_added) {
-    // 채널 추가 안 하면 진행 중단
-    return
-  }
-  
   try {
     const formData = new FormData(e.target)
     const deal = APP_STATE.selectedDeal
@@ -1253,13 +1148,6 @@ async function submitGathering(e) {
       closeCreateGathering()
       closeDealDetail()
       navigateTo('gatherings')
-      
-      // 관리자에게 이메일 알림 발송
-      await sendAdminEmail('gathering_created', {
-        user_name: APP_STATE.currentUser.name,
-        gathering_title: data.title,
-        gathering_id: result.id
-      })
     } else {
       console.error('❌ 작성 실패:', result.error)
       alert('포스팅 작성에 실패했습니다: ' + (result.error || '알 수 없는 오류'))
@@ -1598,28 +1486,6 @@ function handleDeepLink() {
   // URL 파라미터 제거 (깨끗한 URL 유지)
   if (dealId || gatheringId) {
     window.history.replaceState({}, '', window.location.pathname)
-  }
-}
-
-// ============================================
-// 관리자 이메일 알림
-// ============================================
-async function sendAdminEmail(type, data) {
-  try {
-    const res = await fetch('/api/admin/email-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, data })
-    })
-    
-    const result = await res.json()
-    if (result.success) {
-      console.log('✅ 관리자 이메일 발송 성공')
-    } else {
-      console.error('❌ 관리자 이메일 발송 실패:', result.error)
-    }
-  } catch (error) {
-    console.error('❌ 관리자 이메일 발송 오류:', error)
   }
 }
 

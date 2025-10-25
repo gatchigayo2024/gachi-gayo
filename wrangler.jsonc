@@ -7,9 +7,9 @@
     "nodejs_compat"
   ],
   "vars": {
-    "KAKAO_JAVASCRIPT_KEY": "",
-    "NAVER_MAP_CLIENT_ID": "",
-    "NAVER_MAP_CLIENT_SECRET": ""
+    "KAKAO_JAVASCRIPT_KEY": "cc9f793cb0ef86ded30ae5b04beea34b",
+    "NAVER_MAP_CLIENT_ID": "wj2ya61n2i",
+    "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog"
   },
   "d1_databases": [
     {
