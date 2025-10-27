@@ -52,7 +52,7 @@ function showPhoneAuth(mode = 'login') {
         <!-- 헤더 -->
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
           <h2 class="text-lg font-bold text-white">${isSignup ? '전화번호로 회원가입' : '전화번호로 로그인'}</h2>
-          <button onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
+          <button type="button" onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
             <i class="fas fa-times text-xl"></i>
           </button>
         </div>
@@ -92,6 +92,7 @@ function showPhoneAuth(mode = 'login') {
                 onkeypress="if(event.key === 'Enter') sendAuthCode()"
               >
               <button 
+                type="button"
                 onclick="sendAuthCode()"
                 class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
               >
@@ -115,6 +116,7 @@ function showPhoneAuth(mode = 'login') {
                 onkeypress="if(event.key === 'Enter') verifyAuthCode()"
               >
               <button 
+                type="button"
                 onclick="verifyAuthCode()"
                 class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
               >
@@ -124,6 +126,7 @@ function showPhoneAuth(mode = 'login') {
             <div class="flex justify-between items-center mt-2">
               <span id="timerDisplay" class="text-sm font-semibold text-gray-600"></span>
               <button 
+                type="button"
                 onclick="resendAuthCode()"
                 class="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
               >
@@ -358,6 +361,7 @@ function showSuccessModal(message, onConfirm) {
           </div>
           <p class="text-gray-800 text-lg mb-6">${message}</p>
           <button 
+            type="button"
             onclick="closeSuccessModal()"
             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
           >
@@ -396,12 +400,14 @@ function showQuestionModal(question, onSubmit) {
           ></textarea>
           <div class="flex space-x-2 mt-4">
             <button 
+              type="button"
               onclick="closeQuestionModal()"
               class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
             >
               취소
             </button>
             <button 
+              type="button"
               onclick="submitQuestion()"
               class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
             >
@@ -784,10 +790,10 @@ function renderDealCard(deal) {
           `).join('')}
         </div>
         ${images.length > 1 ? `
-          <button class="slider-button prev" onclick="moveSlider(${deal.id}, -1)">
+          <button type="button" class="slider-button prev" onclick="moveSlider(${deal.id}, -1)">
             <i class="fas fa-chevron-left"></i>
           </button>
-          <button class="slider-button next" onclick="moveSlider(${deal.id}, 1)">
+          <button type="button" class="slider-button next" onclick="moveSlider(${deal.id}, 1)">
             <i class="fas fa-chevron-right"></i>
           </button>
           <div class="slider-dots">
@@ -804,7 +810,7 @@ function renderDealCard(deal) {
         <!-- 액션 버튼 -->
         <div class="flex items-center justify-between text-sm">
           <div class="flex items-center gap-4">
-            <button onclick="toggleDealLike(event, ${deal.id})" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'}">
+            <button type="button" onclick="toggleDealLike(event, ${deal.id})" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'}">
               <i class="fas fa-heart"></i>
               <span>${deal.like_count || 0}</span>
             </button>
@@ -812,11 +818,11 @@ function renderDealCard(deal) {
               <i class="fas fa-users"></i>
               <span>${deal.gathering_count || 0}</span>
             </div>
-            <button onclick="shareDeal(${deal.id})" class="text-gray-600">
+            <button type="button" onclick="shareDeal(${deal.id})" class="text-gray-600">
               <i class="fas fa-share"></i>
             </button>
           </div>
-          <button onclick="showDealDetail(${deal.id})" class="text-blue-600 font-medium">
+          <button type="button" onclick="showDealDetail(${deal.id})" class="text-blue-600 font-medium">
             자세히 보기 <i class="fas fa-chevron-right"></i>
           </button>
         </div>
@@ -1017,7 +1023,7 @@ function renderDealDetailPanel() {
         <div class="detail-panel active" id="dealDetail">
           <!-- 헤더 -->
           <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
-            <button onclick="closeDealDetail()" class="mr-3">
+            <button type="button" onclick="closeDealDetail()" class="mr-3">
               <i class="fas fa-times text-xl"></i>
             </button>
             <h2 class="text-lg font-bold">특가 할인 상세</h2>
@@ -1033,10 +1039,10 @@ function renderDealDetailPanel() {
                 `).join('')}
               </div>
               ${images.length > 1 ? `
-                <button class="slider-button prev" onclick="moveDetailSlider(-1)">
+                <button type="button" class="slider-button prev" onclick="moveDetailSlider(-1)">
                   <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="slider-button next" onclick="moveDetailSlider(1)">
+                <button type="button" class="slider-button next" onclick="moveDetailSlider(1)">
                   <i class="fas fa-chevron-right"></i>
                 </button>
                 <div class="slider-dots">
@@ -1084,7 +1090,7 @@ function renderDealDetailPanel() {
             
             <!-- 좋아요 버튼 -->
             <div class="mb-4">
-              <button onclick="event.preventDefault(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
+              <button type="button" onclick="event.preventDefault(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
                 <i class="fas fa-heart"></i>
                 <span id="deal-like-count-${deal.id}">${deal.like_count || 0}</span>
               </button>
@@ -1092,10 +1098,10 @@ function renderDealDetailPanel() {
             
             <!-- 액션 버튼 -->
             <div class="space-y-3 mb-6">
-              <button onclick="shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-share"></i> 지인에게 공유하기
               </button>
-              <button onclick="requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-users"></i> 지인들과 같이가기
               </button>
             </div>
@@ -1104,7 +1110,7 @@ function renderDealDetailPanel() {
             <div class="border-t pt-6">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold">같이 갈 사람 찾기</h3>
-                <button onclick="showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <button type="button" onclick="showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
                   <i class="fas fa-plus"></i> 작성하기
                 </button>
               </div>
@@ -1352,7 +1358,7 @@ function renderGatheringDetailPanel() {
   
   let applyButtonHtml = ''
   if (!APP_STATE.currentUser) {
-    applyButtonHtml = '<button onclick="requireLogin(() => showGatheringDetail(' + g.id + '))" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
+    applyButtonHtml = '<button type="button" onclick="requireLogin(() => showGatheringDetail(' + g.id + '))" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
   } else if (g.user_id === APP_STATE.currentUser.id) {
     applyButtonHtml = '<div class="text-center text-gray-600 py-4">내가 작성한 포스팅입니다</div>'
   } else if (applicationStatus === 'pending') {
@@ -1360,14 +1366,14 @@ function renderGatheringDetailPanel() {
   } else if (applicationStatus === 'accepted') {
     applyButtonHtml = '<div class="text-center text-green-600 font-bold py-4">동행이 수락되었습니다</div>'
   } else {
-    applyButtonHtml = '<button onclick="applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
+    applyButtonHtml = '<button type="button" onclick="applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
   }
   
   const html = `
     <div class="detail-panel active" id="gatheringDetail">
       <!-- 헤더 -->
       <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
-        <button onclick="closeGatheringDetail()" class="mr-3">
+        <button type="button" onclick="closeGatheringDetail()" class="mr-3">
           <i class="fas fa-times text-xl"></i>
         </button>
         <h2 class="text-lg font-bold">같이가요 상세</h2>
@@ -1508,7 +1514,7 @@ function showCreateGathering() {
   const html = `
     <div class="detail-panel active" id="createGathering">
       <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center" style="z-index: 20;">
-        <button onclick="closeCreateGathering()" class="mr-3">
+        <button type="button" onclick="closeCreateGathering()" class="mr-3">
           <i class="fas fa-times text-xl"></i>
         </button>
         <h2 class="text-lg font-bold">같이가요 작성</h2>
@@ -1639,7 +1645,7 @@ async function renderMyPage() {
         <div class="p-8 text-center">
           <i class="fas fa-user-circle text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-600 mb-6">로그인이 필요합니다</p>
-          <button onclick="showPhoneAuth('login')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">
+          <button type="button" onclick="showPhoneAuth('login')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">
             <i class="fas fa-mobile-alt"></i> 전화번호로 로그인
           </button>
         </div>
@@ -1657,7 +1663,7 @@ async function renderMyPage() {
       </div>
       
       <div class="p-4 space-y-3">
-        <button onclick="showMyGatherings()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
+        <button type="button" onclick="showMyGatherings()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <i class="fas fa-pen text-blue-600 text-xl"></i>
@@ -1667,7 +1673,7 @@ async function renderMyPage() {
           </div>
         </button>
         
-        <button onclick="showMyApplications()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
+        <button type="button" onclick="showMyApplications()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <i class="fas fa-paper-plane text-green-600 text-xl"></i>
@@ -1677,7 +1683,7 @@ async function renderMyPage() {
           </div>
         </button>
         
-        <button onclick="showMyLikes()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
+        <button type="button" onclick="showMyLikes()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <i class="fas fa-heart text-red-600 text-xl"></i>
@@ -1687,7 +1693,7 @@ async function renderMyPage() {
           </div>
         </button>
         
-        <button onclick="logout()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
+        <button type="button" onclick="logout()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <i class="fas fa-sign-out-alt text-gray-600 text-xl"></i>
             <span class="font-medium text-gray-600">로그아웃</span>
@@ -1711,7 +1717,7 @@ async function showMyGatherings() {
     const html = `
       <div class="max-w-2xl mx-auto">
         <div class="bg-white border-b p-4 flex items-center">
-          <button onclick="renderMyPage()" class="mr-3">
+          <button type="button" onclick="renderMyPage()" class="mr-3">
             <i class="fas fa-arrow-left text-xl"></i>
           </button>
           <h1 class="text-xl font-bold">내가 쓴 같이가요</h1>
@@ -1742,10 +1748,10 @@ function renderMyGatheringCard(gathering) {
       </div>
       
       <div class="flex gap-2">
-        <button onclick="showGatheringDetail(${gathering.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm">
+        <button type="button" onclick="showGatheringDetail(${gathering.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm">
           상세보기
         </button>
-        <button onclick="deleteGathering(${gathering.id})" class="px-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm">
+        <button type="button" onclick="deleteGathering(${gathering.id})" class="px-4 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg text-sm">
           <i class="fas fa-trash"></i>
         </button>
       </div>
@@ -1791,7 +1797,7 @@ async function showMyApplications() {
     const html = `
       <div class="max-w-2xl mx-auto">
         <div class="bg-white border-b p-4 flex items-center">
-          <button onclick="renderMyPage()" class="mr-3">
+          <button type="button" onclick="renderMyPage()" class="mr-3">
             <i class="fas fa-arrow-left text-xl"></i>
           </button>
           <h1 class="text-xl font-bold">신청한 같이가요</h1>
@@ -1833,7 +1839,7 @@ function renderApplicationCard(gathering) {
       <h3 class="font-bold text-lg mb-2">${gathering.title}</h3>
       <p class="text-gray-600 text-sm mb-3 line-clamp-2">${gathering.content}</p>
       
-      <button onclick="showGatheringDetail(${gathering.id})" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm">
+      <button type="button" onclick="showGatheringDetail(${gathering.id})" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm">
         상세보기
       </button>
     </div>
@@ -1858,7 +1864,7 @@ async function showMyLikes() {
   const html = `
     <div class="max-w-2xl mx-auto">
       <div class="bg-white border-b p-4 flex items-center">
-        <button onclick="renderMyPage()" class="mr-3">
+        <button type="button" onclick="renderMyPage()" class="mr-3">
           <i class="fas fa-arrow-left text-xl"></i>
         </button>
         <h1 class="text-xl font-bold">내 좋아요</h1>
