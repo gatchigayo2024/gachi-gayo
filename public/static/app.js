@@ -364,7 +364,7 @@ function startAuthTimer() {
 // 성공/안내 모달 표시
 function showSuccessModal(message, onConfirm) {
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="successModal">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="successModal">
       <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden">
         <div class="p-6 text-center">
           <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -394,7 +394,7 @@ function showSuccessModal(message, onConfirm) {
 // 질문 답변 모달 표시
 function showQuestionModal(question, onSubmit) {
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="questionModal">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="questionModal">
       <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
           <h2 class="text-xl font-bold text-white">작성자의 질문</h2>
