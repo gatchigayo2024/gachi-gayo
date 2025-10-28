@@ -810,7 +810,7 @@ function renderDealCard(deal) {
         <!-- 액션 버튼 -->
         <div class="flex items-center justify-between text-sm">
           <div class="flex items-center gap-4">
-            <button type="button" onclick="toggleDealLike(event, ${deal.id})" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'}">
+            <button type="button" onclick="event.stopPropagation(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-1 ${isLiked ? 'text-red-500' : 'text-gray-600'}">
               <i class="fas fa-heart"></i>
               <span>${deal.like_count || 0}</span>
             </button>
@@ -818,11 +818,11 @@ function renderDealCard(deal) {
               <i class="fas fa-users"></i>
               <span>${deal.gathering_count || 0}</span>
             </div>
-            <button type="button" onclick="shareDeal(${deal.id})" class="text-gray-600">
+            <button type="button" onclick="event.stopPropagation(); shareDeal(${deal.id})" class="text-gray-600">
               <i class="fas fa-share"></i>
             </button>
           </div>
-          <button type="button" onclick="showDealDetail(${deal.id})" class="text-blue-600 font-medium">
+          <button type="button" onclick="event.stopPropagation(); showDealDetail(${deal.id})" class="text-blue-600 font-medium">
             자세히 보기 <i class="fas fa-chevron-right"></i>
           </button>
         </div>
@@ -1090,7 +1090,7 @@ function renderDealDetailPanel() {
             
             <!-- 좋아요 버튼 -->
             <div class="mb-4">
-              <button type="button" onclick="event.preventDefault(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
+              <button type="button" onclick="event.preventDefault(); event.stopPropagation(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
                 <i class="fas fa-heart"></i>
                 <span id="deal-like-count-${deal.id}">${deal.like_count || 0}</span>
               </button>
@@ -1098,10 +1098,10 @@ function renderDealDetailPanel() {
             
             <!-- 액션 버튼 -->
             <div class="space-y-3 mb-6">
-              <button type="button" onclick="shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="event.stopPropagation(); shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-share"></i> 지인에게 공유하기
               </button>
-              <button type="button" onclick="requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="event.stopPropagation(); requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-users"></i> 지인들과 같이가기
               </button>
             </div>
@@ -1110,7 +1110,7 @@ function renderDealDetailPanel() {
             <div class="border-t pt-6">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold">같이 갈 사람 찾기</h3>
-                <button type="button" onclick="showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <button type="button" onclick="event.stopPropagation(); showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
                   <i class="fas fa-plus"></i> 작성하기
                 </button>
               </div>
@@ -1366,7 +1366,7 @@ function renderGatheringDetailPanel() {
   } else if (applicationStatus === 'accepted') {
     applyButtonHtml = '<div class="text-center text-green-600 font-bold py-4">동행이 수락되었습니다</div>'
   } else {
-    applyButtonHtml = '<button type="button" onclick="applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
+    applyButtonHtml = '<button type="button" onclick="event.stopPropagation(); applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
   }
   
   const html = `
@@ -1987,5 +1987,16 @@ async function sendAdminEmail(type, data) {
 // ============================================
 // 초기화
 // ============================================
+
+// Kakao SDK 초기화
+if (typeof Kakao !== 'undefined' && window.KAKAO_KEY) {
+  if (!Kakao.isInitialized()) {
+    Kakao.init(window.KAKAO_KEY)
+    console.log('✅ Kakao SDK 초기화 완료')
+  }
+} else {
+  console.warn('⚠️ Kakao SDK를 불러올 수 없습니다')
+}
+
 loadUser()
 handleDeepLink()
