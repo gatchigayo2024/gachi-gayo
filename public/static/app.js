@@ -1096,7 +1096,7 @@ function renderDealDetailPanel() {
             
             <!-- 좋아요 버튼 -->
             <div class="mb-4">
-              <button type="button" onclick="event.preventDefault(); event.stopPropagation(); toggleDealLike(event, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
+              <button type="button" onclick="toggleDealLike(null, ${deal.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${deal.is_liked > 0 ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
                 <i class="fas fa-heart"></i>
                 <span id="deal-like-count-${deal.id}">${deal.like_count || 0}</span>
               </button>
@@ -1107,7 +1107,7 @@ function renderDealDetailPanel() {
               <button type="button" onclick="event.stopPropagation(); shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-share"></i> 지인에게 공유하기
               </button>
-              <button type="button" onclick="event.stopPropagation(); requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-users"></i> 지인들과 같이가기
               </button>
             </div>
@@ -1116,7 +1116,7 @@ function renderDealDetailPanel() {
             <div class="border-t pt-6">
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-xl font-bold">같이 갈 사람 찾기</h3>
-                <button type="button" onclick="event.stopPropagation(); showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                <button type="button" onclick="showCreateGathering()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
                   <i class="fas fa-plus"></i> 작성하기
                 </button>
               </div>
@@ -1272,7 +1272,7 @@ function renderGatheringCardSmall(gathering) {
       </div>
       
       <div class="flex items-center justify-between">
-        <button onclick="toggleGatheringLike(event, ${gathering.id})" class="flex items-center gap-1 text-sm ${isLiked ? 'text-red-500' : 'text-gray-600'}">
+        <button type="button" onclick="event.stopPropagation(); toggleGatheringLike(null, ${gathering.id})" class="flex items-center gap-1 text-sm ${isLiked ? 'text-red-500' : 'text-gray-600'}">
           <i class="fas fa-heart"></i>
           <span>${gathering.like_count || 0}</span>
         </button>
@@ -1372,7 +1372,7 @@ function renderGatheringDetailPanel() {
   } else if (applicationStatus === 'accepted') {
     applyButtonHtml = '<div class="text-center text-green-600 font-bold py-4">동행이 수락되었습니다</div>'
   } else {
-    applyButtonHtml = '<button type="button" onclick="event.stopPropagation(); applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
+    applyButtonHtml = '<button type="button" onclick="applyGathering()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
   }
   
   const html = `
@@ -1444,11 +1444,11 @@ function renderGatheringDetailPanel() {
         </div>
         
         <div class="flex items-center gap-2 mb-4">
-          <button onclick="event.preventDefault(); toggleGatheringLike(event, ${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
+          <button type="button" onclick="toggleGatheringLike(null, ${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg ${isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'}">
             <i class="fas fa-heart"></i>
             <span id="like-count-${g.id}">${g.like_count || 0}</span>
           </button>
-          <button onclick="shareGathering(${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 text-blue-600">
+          <button type="button" onclick="shareGathering(${g.id})" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 text-blue-600">
             <i class="fas fa-share"></i>
             <span>공유하기</span>
           </button>
