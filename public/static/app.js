@@ -50,7 +50,7 @@ function showPhoneAuth() {
   }
   
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-3" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto" style="max-height: 85vh; overflow-y: auto;">
         <!-- 헤더 -->
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 flex items-center justify-between rounded-t-2xl sticky top-0">
