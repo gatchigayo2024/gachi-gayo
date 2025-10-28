@@ -142,14 +142,8 @@ function showPhoneAuth(mode = 'login') {
   document.body.insertAdjacentHTML('beforeend', html)
   APP_STATE.smsVerification.mode = mode
   
-  // 입력란에 포커스
-  setTimeout(() => {
-    if (isSignup) {
-      document.getElementById('nameInput')?.focus()
-    } else {
-      document.getElementById('phoneInput')?.focus()
-    }
-  }, 100)
+  // 모바일에서 자동 포커스 시 키보드가 올라오는 문제 방지
+  // 사용자가 직접 입력 필드를 클릭하도록 유도
 }
 
 // SMS 인증 팝업 닫기
@@ -180,7 +174,7 @@ async function sendAuthCode() {
     const name = nameInput?.value.trim()
     if (!name) {
       alert('이름을 입력해주세요.')
-      nameInput?.focus()
+      // nameInput?.focus() - 모바일 키보드 팝업 방지
       return
     }
     APP_STATE.smsVerification.name = name
@@ -189,7 +183,7 @@ async function sendAuthCode() {
   // 전화번호 유효성 검사
   if (!/^01[0-9]{8,9}$/.test(phone)) {
     alert('올바른 전화번호를 입력해주세요.\n(예: 01012345678)')
-    phoneInput.focus()
+    // phoneInput.focus() - 모바일 키보드 팝업 방지
     return
   }
   
@@ -210,7 +204,7 @@ async function sendAuthCode() {
       document.getElementById('nameInputSection')?.classList.add('hidden')
       document.getElementById('phoneInputSection').classList.add('hidden')
       document.getElementById('codeInputSection').classList.remove('hidden')
-      document.getElementById('codeInput').focus()
+      // 모바일 키보드 자동 팝업 방지: focus() 제거
       
       // 타이머 시작
       startAuthTimer()
@@ -248,7 +242,7 @@ async function verifyAuthCode() {
   
   if (!code || code.length !== 6) {
     alert('6자리 인증번호를 입력해주세요.')
-    codeInput.focus()
+    // codeInput.focus() - 모바일 키보드 팝업 방지
     return
   }
   
@@ -268,7 +262,7 @@ async function verifyAuthCode() {
     if (!verifyData.success) {
       alert(verifyData.error || '인증번호가 올바르지 않습니다.')
       codeInput.value = ''
-      codeInput.focus()
+      // codeInput.focus() - 모바일 키보드 팝업 방지
       return
     }
     
@@ -435,7 +429,7 @@ function showQuestionModal(question, onSubmit) {
     document.getElementById('questionModal')?.remove()
   }
   
-  setTimeout(() => document.getElementById('answerInput')?.focus(), 100)
+  // setTimeout(() => document.getElementById('answerInput')?.focus(), 100) - 모바일 키보드 팝업 방지
 }
 
 // ============================================
