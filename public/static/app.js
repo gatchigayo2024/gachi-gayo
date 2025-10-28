@@ -82,11 +82,11 @@ function showPhoneAuth(mode = 'login') {
             <label class="block text-sm font-semibold text-gray-700 mb-2">
               <i class="fas fa-mobile-alt mr-1"></i>전화번호
             </label>
-            <div class="flex space-x-2">
+            <div class="flex gap-2">
               <input 
                 type="tel" 
                 id="phoneInput" 
-                class="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:border-blue-500 focus:outline-none" 
+                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" 
                 placeholder="01012345678"
                 maxlength="11"
                 onkeypress="if(event.key === 'Enter') sendAuthCode()"
@@ -94,7 +94,7 @@ function showPhoneAuth(mode = 'login') {
               <button 
                 type="button"
                 onclick="sendAuthCode()"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md flex-shrink-0 text-sm"
               >
                 발송
               </button>
@@ -106,11 +106,11 @@ function showPhoneAuth(mode = 'login') {
             <label class="block text-sm font-semibold text-gray-700 mb-2">
               <i class="fas fa-key mr-1"></i>인증번호
             </label>
-            <div class="flex space-x-2">
+            <div class="flex gap-2">
               <input 
                 type="text" 
                 id="codeInput" 
-                class="flex-1 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-center text-xl tracking-widest focus:border-green-500 focus:outline-none font-mono" 
+                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-center text-lg tracking-widest focus:border-green-500 focus:outline-none font-mono" 
                 placeholder="000000"
                 maxlength="6"
                 onkeypress="if(event.key === 'Enter') verifyAuthCode()"
@@ -118,7 +118,7 @@ function showPhoneAuth(mode = 'login') {
               <button 
                 type="button"
                 onclick="verifyAuthCode()"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md flex-shrink-0 text-sm"
               >
                 확인
               </button>
