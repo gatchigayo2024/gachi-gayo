@@ -228,7 +228,12 @@ async function sendAuthCode() {
       // 타이머 시작
       startAuthTimer()
       
-      alert('인증번호가 발송되었습니다.')
+      // 개발 모드 메시지
+      if (data.devMode && data.devCode) {
+        alert(`🔧 개발 모드\n\n인증번호: ${data.devCode}\n\n실제 SMS는 발송되지 않았습니다.\n위 인증번호를 입력하세요.`)
+      } else {
+        alert('인증번호가 발송되었습니다.')
+      }
     } else {
       alert(data.error || 'SMS 발송에 실패했습니다.')
     }

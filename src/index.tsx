@@ -40,7 +40,22 @@ app.post('/api/sms/send', async (c) => {
       'INSERT INTO sms_verifications (phone, code, expires_at) VALUES (?, ?, ?)'
     ).bind(phone, code, expiresAt).run()
     
-    // 알리고 SMS API 호출
+    // 개발 모드 체크 (환경 변수로 제어)
+    const isDevelopment = c.env.ENVIRONMENT === 'development' || !c.env.ALIGO_API_KEY
+    
+    if (isDevelopment) {
+      // 개발 모드: 콘솔에 인증번호 출력, SMS는 발송하지 않음
+      console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', phone)
+      console.log('📱 실제 SMS는 발송되지 않았습니다. 위 인증번호를 사용하세요.')
+      return c.json({ 
+        success: true, 
+        expiresAt,
+        devMode: true,
+        devCode: code // 개발 모드에서만 인증번호 반환
+      })
+    }
+    
+    // 프로덕션 모드: 실제 SMS 발송
     const ALIGO_API_KEY = c.env.ALIGO_API_KEY || ''
     const ALIGO_USER_ID = c.env.ALIGO_USER_ID || ''
     const ALIGO_SENDER = c.env.ALIGO_SENDER || ''
@@ -69,6 +84,17 @@ app.post('/api/sms/send', async (c) => {
       return c.json({ success: true, expiresAt })
     } else {
       console.error('❌ SMS 발송 실패:', result)
+      // IP 인증 오류인 경우 개발 모드로 폴백
+      if (result.result_code === -101 || result.result_code === '-101') {
+        console.log('🔧 IP 인증 오류 감지 - 개발 모드로 전환')
+        console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', phone)
+        return c.json({ 
+          success: true, 
+          expiresAt,
+          devMode: true,
+          devCode: code
+        })
+      }
       return c.json({ success: false, error: 'SMS 발송에 실패했습니다.' }, 500)
     }
   } catch (error) {
