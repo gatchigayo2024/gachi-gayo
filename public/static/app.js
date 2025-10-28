@@ -42,16 +42,14 @@ function logout() {
 // SMS 전화번호 인증
 // ============================================
 
-// SMS 인증 팝업 표시 (회원가입/로그인)
-function showPhoneAuth(mode = 'login') {
-  const isSignup = mode === 'signup'
-  
+// SMS 인증 팝업 표시 (회원가입)
+function showPhoneAuth() {
   const html = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto" style="max-height: 85vh;">
         <!-- 헤더 -->
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 flex items-center justify-between rounded-t-2xl">
-          <h2 class="text-base font-bold text-white">${isSignup ? '전화번호 회원가입' : '전화번호 로그인'}</h2>
+          <h2 class="text-base font-bold text-white">전화번호로 회원가입</h2>
           <button type="button" onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
             <i class="fas fa-times text-lg"></i>
           </button>
@@ -61,13 +59,13 @@ function showPhoneAuth(mode = 'login') {
           <!-- 안내 메시지 -->
           <div class="bg-blue-50 rounded-lg p-2.5 flex items-start gap-2">
             <i class="fas fa-info-circle text-blue-500 text-sm mt-0.5 flex-shrink-0"></i>
-            <p class="text-xs text-blue-800 leading-tight">${isSignup ? '전화번호 인증으로 간편하게 가입하세요.' : '가입한 전화번호로 로그인하세요.'}</p>
+            <p class="text-xs text-blue-800 leading-tight">전화번호 인증으로 간편하게 가입하세요.</p>
           </div>
           
-          <!-- 이름 입력 (회원가입 시만) -->
-          <div id="nameInputSection" class="${isSignup ? '' : 'hidden'}">
+          <!-- 이름 입력 -->
+          <div id="nameInputSection">
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-              <i class="fas fa-user mr-1"></i>이름
+              <i class="fas fa-user mr-1"></i>이름 (닉네임)
             </label>
             <input 
               type="text" 
@@ -140,7 +138,6 @@ function showPhoneAuth(mode = 'login') {
   `
   
   document.body.insertAdjacentHTML('beforeend', html)
-  APP_STATE.smsVerification.mode = mode
   
   // 모바일에서 자동 포커스 시 키보드가 올라오는 문제 방지
   // 사용자가 직접 입력 필드를 클릭하도록 유도
@@ -164,21 +161,17 @@ function closePhoneAuth() {
 
 // 인증번호 발송
 async function sendAuthCode() {
-  const mode = APP_STATE.smsVerification.mode
   const nameInput = document.getElementById('nameInput')
   const phoneInput = document.getElementById('phoneInput')
   const phone = phoneInput.value.replace(/-/g, '')
   
-  // 회원가입 모드에서 이름 확인
-  if (mode === 'signup') {
-    const name = nameInput?.value.trim()
-    if (!name) {
-      alert('이름을 입력해주세요.')
-      // nameInput?.focus() - 모바일 키보드 팝업 방지
-      return
-    }
-    APP_STATE.smsVerification.name = name
+  // 이름 확인
+  const name = nameInput?.value.trim()
+  if (!name) {
+    alert('이름(닉네임)을 입력해주세요.')
+    return
   }
+  APP_STATE.smsVerification.name = name
   
   // 전화번호 유효성 검사
   if (!/^01[0-9]{8,9}$/.test(phone)) {
@@ -623,7 +616,7 @@ function kakaoLoginReal() {
 function requireLogin(callback) {
   if (!APP_STATE.currentUser) {
     APP_STATE.loginCallback = callback
-    showPhoneAuth('signup')
+    showPhoneAuth()
     return false
   }
   return true
@@ -1639,8 +1632,8 @@ async function renderMyPage() {
         <div class="p-8 text-center">
           <i class="fas fa-user-circle text-6xl text-gray-300 mb-4"></i>
           <p class="text-gray-600 mb-6">로그인이 필요합니다</p>
-          <button type="button" onclick="showPhoneAuth('login')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">
-            <i class="fas fa-mobile-alt"></i> 전화번호로 로그인
+          <button type="button" onclick="showPhoneAuth()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">
+            <i class="fas fa-mobile-alt"></i> 전화번호로 회원가입
           </button>
         </div>
       </div>
