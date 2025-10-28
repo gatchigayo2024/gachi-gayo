@@ -762,19 +762,8 @@ app.get('/', (c) => {
         </nav>
 
         <!-- 카카오 로그인 모달 -->
-        <div id="loginModal" class="modal">
-            <div class="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
-                <h2 class="text-xl font-bold mb-4">로그인이 필요합니다</h2>
-                <p class="text-gray-600 mb-6">이 기능을 사용하려면 카카오 로그인이 필요합니다.</p>
-                <button onclick="kakaoLogin()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-3 rounded-lg mb-2">
-                    <i class="fas fa-comment"></i> 카카오로 가입하기
-                </button>
-                <button onclick="closeLoginModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 rounded-lg">
-                    취소
-                </button>
-            </div>
-        </div>
-
+        <!-- 전화번호 인증 모달은 JavaScript에서 동적으로 생성됨 -->
+        
         <script src="/static/app.js"></script>
     </body>
     </html>

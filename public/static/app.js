@@ -47,46 +47,46 @@ function showPhoneAuth(mode = 'login') {
   const isSignup = mode === 'signup'
   
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto" style="max-height: 85vh;">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3 flex items-center justify-between flex-shrink-0">
-          <h2 class="text-lg font-bold text-white">${isSignup ? '전화번호로 회원가입' : '전화번호로 로그인'}</h2>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 flex items-center justify-between rounded-t-2xl">
+          <h2 class="text-base font-bold text-white">${isSignup ? '전화번호 회원가입' : '전화번호 로그인'}</h2>
           <button type="button" onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
-            <i class="fas fa-times text-xl"></i>
+            <i class="fas fa-times text-lg"></i>
           </button>
         </div>
         
-        <div class="p-4 space-y-4 overflow-y-auto flex-1">
+        <div class="p-3.5 space-y-3">
           <!-- 안내 메시지 -->
-          <div class="bg-blue-50 rounded-lg p-3 flex items-start space-x-2">
-            <i class="fas fa-info-circle text-blue-500 text-lg mt-0.5 flex-shrink-0"></i>
-            <p class="text-sm text-blue-800">${isSignup ? '전화번호 인증으로 간편하게 가입하세요.' : '가입한 전화번호로 로그인하세요.'}</p>
+          <div class="bg-blue-50 rounded-lg p-2.5 flex items-start gap-2">
+            <i class="fas fa-info-circle text-blue-500 text-sm mt-0.5 flex-shrink-0"></i>
+            <p class="text-xs text-blue-800 leading-tight">${isSignup ? '전화번호 인증으로 간편하게 가입하세요.' : '가입한 전화번호로 로그인하세요.'}</p>
           </div>
           
           <!-- 이름 입력 (회원가입 시만) -->
           <div id="nameInputSection" class="${isSignup ? '' : 'hidden'}">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-user mr-1"></i>이름
             </label>
             <input 
               type="text" 
               id="nameInput" 
-              class="w-full border-2 border-gray-300 rounded-lg px-3 py-2.5 focus:border-blue-500 focus:outline-none" 
+              class="w-full border-2 border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 focus:outline-none" 
               placeholder="홍길동"
             >
           </div>
           
           <!-- 전화번호 입력 -->
           <div id="phoneInputSection">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-mobile-alt mr-1"></i>전화번호
             </label>
-            <div class="flex gap-2">
+            <div class="flex gap-1.5">
               <input 
                 type="tel" 
                 id="phoneInput" 
-                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" 
+                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-2.5 py-2 text-sm focus:border-blue-500 focus:outline-none" 
                 placeholder="01012345678"
                 maxlength="11"
                 onkeypress="if(event.key === 'Enter') sendAuthCode()"
@@ -94,7 +94,7 @@ function showPhoneAuth(mode = 'login') {
               <button 
                 type="button"
                 onclick="sendAuthCode()"
-                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md flex-shrink-0 text-sm"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3.5 py-2 rounded-lg whitespace-nowrap transition-colors shadow-sm flex-shrink-0 text-xs"
               >
                 발송
               </button>
@@ -103,14 +103,14 @@ function showPhoneAuth(mode = 'login') {
           
           <!-- 인증번호 입력 (초기 숨김) -->
           <div id="codeInputSection" class="hidden">
-            <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-key mr-1"></i>인증번호
             </label>
-            <div class="flex gap-2">
+            <div class="flex gap-1.5">
               <input 
                 type="text" 
                 id="codeInput" 
-                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-3 py-2.5 text-center text-lg tracking-widest focus:border-green-500 focus:outline-none font-mono" 
+                class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-2.5 py-2 text-center text-base tracking-wider focus:border-green-500 focus:outline-none font-mono" 
                 placeholder="000000"
                 maxlength="6"
                 onkeypress="if(event.key === 'Enter') verifyAuthCode()"
@@ -118,19 +118,19 @@ function showPhoneAuth(mode = 'login') {
               <button 
                 type="button"
                 onclick="verifyAuthCode()"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2.5 rounded-lg whitespace-nowrap transition-colors shadow-md flex-shrink-0 text-sm"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-3.5 py-2 rounded-lg whitespace-nowrap transition-colors shadow-sm flex-shrink-0 text-xs"
               >
                 확인
               </button>
             </div>
-            <div class="flex justify-between items-center mt-2">
-              <span id="timerDisplay" class="text-sm font-semibold text-gray-600"></span>
+            <div class="flex justify-between items-center mt-1.5">
+              <span id="timerDisplay" class="text-xs font-semibold text-gray-600"></span>
               <button 
                 type="button"
                 onclick="resendAuthCode()"
-                class="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                class="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
               >
-                <i class="fas fa-redo mr-1"></i>재발송
+                <i class="fas fa-redo mr-0.5"></i>재발송
               </button>
             </div>
           </div>
@@ -545,7 +545,7 @@ function kakaoLogin() {
             if (data.success) {
               console.log('✅ 서버 로그인 성공:', data.user)
               saveUser(data.user)
-              closeLoginModal()
+              closePhoneAuth()
               
               // 로그인 후 콜백 실행
               if (APP_STATE.loginCallback) {
@@ -600,7 +600,7 @@ function kakaoLoginReal() {
           .then(data => {
             if (data.success) {
               saveUser(data.user)
-              closeLoginModal()
+              closePhoneAuth()
               if (APP_STATE.loginCallback) {
                 APP_STATE.loginCallback()
                 APP_STATE.loginCallback = null
