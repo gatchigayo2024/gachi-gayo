@@ -1,9 +1,9 @@
 -- 사용자 테이블
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  kakao_id TEXT UNIQUE NOT NULL,
+  kakao_id TEXT UNIQUE,
   name TEXT NOT NULL,
-  phone TEXT,
+  phone TEXT UNIQUE,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS gathering_likes (
 
 -- 인덱스 생성
 CREATE INDEX IF NOT EXISTS idx_users_kakao_id ON users(kakao_id);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 CREATE INDEX IF NOT EXISTS idx_gatherings_user_id ON gatherings(user_id);
 CREATE INDEX IF NOT EXISTS idx_gatherings_special_deal_id ON gatherings(special_deal_id);
 CREATE INDEX IF NOT EXISTS idx_gathering_applications_gathering_id ON gathering_applications(gathering_id);
