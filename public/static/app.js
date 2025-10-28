@@ -44,11 +44,16 @@ function logout() {
 
 // SMS 인증 팝업 표시 (회원가입)
 function showPhoneAuth() {
+  // 이미 모달이 있으면 중복 생성 방지
+  if (document.getElementById('phoneAuthOverlay')) {
+    return
+  }
+  
   const html = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3" id="phoneAuthOverlay" onclick="if(event.target === this) closePhoneAuth()">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto" style="max-height: 85vh;">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto" style="max-height: 85vh; overflow-y: auto;">
         <!-- 헤더 -->
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 flex items-center justify-between rounded-t-2xl">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-2.5 flex items-center justify-between rounded-t-2xl sticky top-0">
           <h2 class="text-base font-bold text-white">전화번호로 회원가입</h2>
           <button type="button" onclick="closePhoneAuth()" class="text-white hover:text-gray-200">
             <i class="fas fa-times text-lg"></i>
@@ -63,7 +68,7 @@ function showPhoneAuth() {
           </div>
           
           <!-- 이름 입력 -->
-          <div id="nameInputSection">
+          <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-user mr-1"></i>이름 (닉네임)
             </label>
@@ -76,7 +81,7 @@ function showPhoneAuth() {
           </div>
           
           <!-- 전화번호 입력 -->
-          <div id="phoneInputSection">
+          <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-mobile-alt mr-1"></i>전화번호
             </label>
@@ -99,8 +104,8 @@ function showPhoneAuth() {
             </div>
           </div>
           
-          <!-- 인증번호 입력 (초기 숨김) -->
-          <div id="codeInputSection" class="hidden">
+          <!-- 인증번호 입력 (항상 표시) -->
+          <div id="codeInputSection">
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
               <i class="fas fa-key mr-1"></i>인증번호
             </label>
@@ -111,12 +116,15 @@ function showPhoneAuth() {
                 class="flex-1 min-w-0 border-2 border-gray-300 rounded-lg px-2.5 py-2 text-center text-base tracking-wider focus:border-green-500 focus:outline-none font-mono" 
                 placeholder="000000"
                 maxlength="6"
+                disabled
                 onkeypress="if(event.key === 'Enter') verifyAuthCode()"
               >
               <button 
                 type="button"
                 onclick="verifyAuthCode()"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold px-3.5 py-2 rounded-lg whitespace-nowrap transition-colors shadow-sm flex-shrink-0 text-xs"
+                id="verifyButton"
+                disabled
+                class="bg-gray-400 text-white font-semibold px-3.5 py-2 rounded-lg whitespace-nowrap shadow-sm flex-shrink-0 text-xs cursor-not-allowed"
               >
                 확인
               </button>
@@ -126,7 +134,9 @@ function showPhoneAuth() {
               <button 
                 type="button"
                 onclick="resendAuthCode()"
-                class="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                id="resendButton"
+                disabled
+                class="text-xs text-gray-400 font-medium cursor-not-allowed"
               >
                 <i class="fas fa-redo mr-0.5"></i>재발송
               </button>
@@ -193,21 +203,32 @@ async function sendAuthCode() {
       APP_STATE.smsVerification.phone = phone
       APP_STATE.smsVerification.expiresAt = data.expiresAt
       
-      // UI 전환
-      document.getElementById('nameInputSection')?.classList.add('hidden')
-      document.getElementById('phoneInputSection').classList.add('hidden')
-      document.getElementById('codeInputSection').classList.remove('hidden')
-      // 모바일 키보드 자동 팝업 방지: focus() 제거
+      // 인증번호 입력란 활성화
+      const codeInput = document.getElementById('codeInput')
+      const verifyButton = document.getElementById('verifyButton')
+      const resendButton = document.getElementById('resendButton')
+      
+      if (codeInput) {
+        codeInput.disabled = false
+        codeInput.classList.remove('bg-gray-100')
+      }
+      
+      if (verifyButton) {
+        verifyButton.disabled = false
+        verifyButton.classList.remove('bg-gray-400', 'cursor-not-allowed')
+        verifyButton.classList.add('bg-green-600', 'hover:bg-green-700')
+      }
+      
+      if (resendButton) {
+        resendButton.disabled = false
+        resendButton.classList.remove('text-gray-400', 'cursor-not-allowed')
+        resendButton.classList.add('text-blue-600', 'hover:text-blue-700', 'hover:underline')
+      }
       
       // 타이머 시작
       startAuthTimer()
       
-      // 성공 알림
-      const successAlert = document.createElement('div')
-      successAlert.className = 'bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center space-x-2'
-      successAlert.innerHTML = '<i class="fas fa-check-circle text-green-500"></i><span class="text-sm text-green-800">인증번호가 발송되었습니다.</span>'
-      document.getElementById('codeInputSection').insertAdjacentElement('beforebegin', successAlert)
-      setTimeout(() => successAlert.remove(), 3000)
+      alert('인증번호가 발송되었습니다.')
     } else {
       alert(data.error || 'SMS 발송에 실패했습니다.')
     }
@@ -219,8 +240,6 @@ async function sendAuthCode() {
 
 // 인증번호 재발송
 async function resendAuthCode() {
-  document.getElementById('phoneInputSection').classList.remove('hidden')
-  document.getElementById('codeInputSection').classList.add('hidden')
   document.getElementById('codeInput').value = ''
   
   if (APP_STATE.smsVerification.timer) {
