@@ -859,12 +859,7 @@ function moveSlider(dealId, direction) {
 
 // 특가 할인 좋아요 토글
 async function toggleDealLike(event, dealId) {
-  if (event) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-  
-  if (!requireLogin(() => toggleDealLike(event, dealId))) return
+  if (!requireLogin(() => toggleDealLike(null, dealId))) return
   
   try {
     console.log('❤️ 특가 할인 좋아요 토글 요청:', { deal_id: dealId, user_id: APP_STATE.currentUser.id })
@@ -1284,12 +1279,7 @@ function renderGatheringCardSmall(gathering) {
 
 // 같이가요 좋아요 토글
 async function toggleGatheringLike(event, gatheringId) {
-  if (event) {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-  
-  if (!requireLogin(() => toggleGatheringLike(event, gatheringId))) return
+  if (!requireLogin(() => toggleGatheringLike(null, gatheringId))) return
   
   try {
     console.log('❤️ 좋아요 토글 요청:', { gathering_id: gatheringId, user_id: APP_STATE.currentUser.id })
