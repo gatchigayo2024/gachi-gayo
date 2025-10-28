@@ -940,27 +940,32 @@ function shareDeal(dealId) {
   const thumbnailUrl = images[0] || 'https://via.placeholder.com/400x300'
   
   // 카카오톡 공유하기
-  Kakao.Share.sendDefault({
-    objectType: 'feed',
-    content: {
-      title: `🍽️ ${deal.title}`,
-      description: deal.subtitle || deal.content.substring(0, 100) + '...',
-      imageUrl: thumbnailUrl,
-      link: {
-        mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
-        webUrl: `${window.location.origin}/?deal=${dealId}`
-      }
-    },
-    buttons: [
-      {
-        title: '자세히 보기',
+  try {
+    Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `🍽️ ${deal.title}`,
+        description: deal.subtitle || deal.content.substring(0, 100) + '...',
+        imageUrl: thumbnailUrl,
         link: {
           mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
           webUrl: `${window.location.origin}/?deal=${dealId}`
         }
-      }
-    ]
-  })
+      },
+      buttons: [
+        {
+          title: '자세히 보기',
+          link: {
+            mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
+            webUrl: `${window.location.origin}/?deal=${dealId}`
+          }
+        }
+      ]
+    })
+  } catch (error) {
+    console.error('카카오 공유 오류:', error)
+    alert(`카카오톡 공유에 실패했습니다.\n\n현재 도메인: ${window.location.origin}\n\n카카오 개발자 콘솔에서 이 도메인을 등록해주세요:\nhttps://developers.kakao.com/console/app`)
+  }
 }
 
 // 같이가요 공유 (카카오톡)
@@ -978,27 +983,32 @@ function shareGathering(gatheringId) {
   }
   
   // 카카오톡 공유하기
-  Kakao.Share.sendDefault({
-    objectType: 'feed',
-    content: {
-      title: `👥 ${gathering.title}`,
-      description: `📅 ${gathering.date_text} ${gathering.time_text}\n👥 ${gathering.current_people}/${gathering.max_people > 10 ? 'N' : gathering.max_people}명\n📍 ${gathering.place_name}`,
-      imageUrl: 'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=같이가요',
-      link: {
-        mobileWebUrl: `${window.location.origin}/?gathering=${gatheringId}`,
-        webUrl: `${window.location.origin}/?gathering=${gatheringId}`
-      }
-    },
-    buttons: [
-      {
-        title: '같이가요 보기',
+  try {
+    Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: `👥 ${gathering.title}`,
+        description: `📅 ${gathering.date_text} ${gathering.time_text}\n👥 ${gathering.current_people}/${gathering.max_people > 10 ? 'N' : gathering.max_people}명\n📍 ${gathering.place_name}`,
+        imageUrl: 'https://via.placeholder.com/400x300/4CAF50/FFFFFF?text=같이가요',
         link: {
           mobileWebUrl: `${window.location.origin}/?gathering=${gatheringId}`,
           webUrl: `${window.location.origin}/?gathering=${gatheringId}`
         }
-      }
-    ]
-  })
+      },
+      buttons: [
+        {
+          title: '같이가요 보기',
+          link: {
+            mobileWebUrl: `${window.location.origin}/?gathering=${gatheringId}`,
+            webUrl: `${window.location.origin}/?gathering=${gatheringId}`
+          }
+        }
+      ]
+    })
+  } catch (error) {
+    console.error('카카오 공유 오류:', error)
+    alert(`카카오톡 공유에 실패했습니다.\n\n현재 도메인: ${window.location.origin}\n\n카카오 개발자 콘솔에서 이 도메인을 등록해주세요:\nhttps://developers.kakao.com/console/app`)
+  }
 }
 
 // 특가 할인 상세 보기
