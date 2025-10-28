@@ -197,11 +197,23 @@
 
 ### 카카오 개발자 설정
 
-카카오 로그인을 사용하려면 [Kakao Developers](https://developers.kakao.com/)에서:
+카카오 공유하기 기능을 사용하려면 [Kakao Developers](https://developers.kakao.com/)에서:
 1. 애플리케이션 생성
 2. JavaScript 키 발급
 3. 플랫폼 설정 > Web > 사이트 도메인 등록
 4. `.dev.vars` 파일에 `KAKAO_JAVASCRIPT_KEY` 설정
+
+**로컬 개발 환경 설정:**
+```bash
+# .dev.vars 파일에 추가
+KAKAO_JAVASCRIPT_KEY=your_javascript_key_here
+```
+
+**프로덕션 배포 설정:**
+```bash
+# Cloudflare Pages 시크릿으로 설정
+npx wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name ganghe
+```
 
 ### 디버깅
 
