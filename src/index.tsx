@@ -171,9 +171,12 @@ app.post('/api/auth/phone-login', async (c) => {
       return c.json({ success: false, error: '이름을 입력해주세요.' }, 400)
     }
     
+    // phone 전용 kakao_id 생성 (UNIQUE 제약 우회)
+    const phoneBasedKakaoId = `phone_${phone}`
+    
     const result = await c.env.DB.prepare(
-      'INSERT INTO users (phone, name, kakao_id, phone_verified) VALUES (?, ?, NULL, 1)'
-    ).bind(phone, name).run()
+      'INSERT INTO users (phone, name, kakao_id, phone_verified) VALUES (?, ?, ?, 1)'
+    ).bind(phone, name, phoneBasedKakaoId).run()
 
     const newUser = await c.env.DB.prepare(
       'SELECT * FROM users WHERE id = ?'
