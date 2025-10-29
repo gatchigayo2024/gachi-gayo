@@ -5,7 +5,7 @@ echo "🚀 프로덕션 배포 시작..."
 echo ""
 
 # 프로젝트 이름
-PROJECT_NAME="ganghe"
+PROJECT_NAME="gatchi-gayo"
 
 # 1. Git 상태 확인
 echo "📋 Git 상태 확인..."

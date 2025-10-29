@@ -109,7 +109,7 @@ Cloudflare는 고정 IP를 사용하지 않으므로:
    - Web 플랫폼 추가
    - 프로덕션 도메인 등록:
      ```
-     https://ganghe.pages.dev
+     https://gatchi-gayo.pages.dev
      https://your-custom-domain.com  (커스텀 도메인 사용 시)
      ```
 
@@ -135,7 +135,7 @@ Cloudflare는 고정 IP를 사용하지 않으므로:
 3. **웹 서비스 URL 등록**
    - 프로덕션 도메인 등록:
      ```
-     https://ganghe.pages.dev
+     https://gatchi-gayo.pages.dev
      https://your-custom-domain.com
      ```
 
@@ -153,24 +153,24 @@ Cloudflare는 고정 IP를 사용하지 않으므로:
 
 ```bash
 # Aligo SMS API
-npx wrangler pages secret put ALIGO_API_KEY --project-name ganghe
+npx wrangler pages secret put ALIGO_API_KEY --project-name gatchi-gayo
 # 입력: i8bzwls1lyjfsp56pzfenqifhf4uqc6x
 
-npx wrangler pages secret put ALIGO_USER_ID --project-name ganghe
+npx wrangler pages secret put ALIGO_USER_ID --project-name gatchi-gayo
 # 입력: gatchigayo2024
 
-npx wrangler pages secret put ALIGO_SENDER --project-name ganghe
+npx wrangler pages secret put ALIGO_SENDER --project-name gatchi-gayo
 # 입력: 070-4036-7411
 
 # 카카오 JavaScript 키
-npx wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name ganghe
+npx wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name gatchi-gayo
 # 입력: f43c7a0d5a13e6f50277e07f8a037b08
 ```
 
 **방법 2: Cloudflare Dashboard 사용**
 
 1. Cloudflare Dashboard 접속
-2. Pages > ganghe 프로젝트 선택
+2. Pages > gatchi-gayo 프로젝트 선택
 3. Settings > Environment Variables
 4. Production 탭에서 다음 변수 추가:
    ```
@@ -227,7 +227,7 @@ npx wrangler d1 execute webapp-production --file=./seed.sql
 npm run build
 
 # 배포 (프로젝트 이름 지정)
-npx wrangler pages deploy dist --project-name ganghe
+npx wrangler pages deploy dist --project-name gatchi-gayo
 ```
 
 ### 6-2. 배포 완료 시 나오는 정보
@@ -236,13 +236,13 @@ npx wrangler pages deploy dist --project-name ganghe
 ✨ Success! Uploaded 1 files (x seconds)
 
 ✨ Deployment complete! Take a peek over at
-   https://random-id.ganghe.pages.dev
+   https://random-id.gatchi-gayo.pages.dev
 ```
 
 ### 6-3. 프로덕션 URL 확인
 
-- **Primary URL**: `https://ganghe.pages.dev`
-- **Branch URL**: `https://main.ganghe.pages.dev`
+- **Primary URL**: `https://gatchi-gayo.pages.dev`
+- **Branch URL**: `https://main.gatchi-gayo.pages.dev`
 
 ---
 
@@ -252,16 +252,16 @@ npx wrangler pages deploy dist --project-name ganghe
 
 **1. 페이지 접속**
 ```bash
-curl https://ganghe.pages.dev
+curl https://gatchi-gayo.pages.dev
 ```
 
 **2. API 테스트**
 ```bash
 # 특가 할인 목록
-curl https://ganghe.pages.dev/api/deals
+curl https://gatchi-gayo.pages.dev/api/deals
 
 # 같이가요 목록
-curl https://ganghe.pages.dev/api/gatherings
+curl https://gatchi-gayo.pages.dev/api/gatherings
 ```
 
 ### 7-2. SMS 인증 테스트
@@ -276,9 +276,9 @@ curl https://ganghe.pages.dev/api/gatherings
 
 **로그 확인:**
 ```bash
-# Cloudflare Dashboard > Pages > ganghe > Logs
+# Cloudflare Dashboard > Pages > gatchi-gayo > Logs
 # 또는
-npx wrangler pages deployment tail --project-name ganghe
+npx wrangler pages deployment tail --project-name gatchi-gayo
 ```
 
 ### 7-3. 카카오 공유 테스트
@@ -335,7 +335,7 @@ npx wrangler pages deployment tail --project-name ganghe
 ```
 해결: 
 1. 카카오 개발자 콘솔에서 올바른 JavaScript 키 확인
-2. wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name ganghe
+2. wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name gatchi-gayo
 ```
 
 ### 네이버 지도 실패 시
@@ -372,10 +372,10 @@ npx wrangler d1 migrations apply webapp-production
 
 # 3. 배포
 echo "☁️ Cloudflare Pages에 배포 중..."
-npx wrangler pages deploy dist --project-name ganghe
+npx wrangler pages deploy dist --project-name gatchi-gayo
 
 echo "✅ 배포 완료!"
-echo "🌐 URL: https://ganghe.pages.dev"
+echo "🌐 URL: https://gatchi-gayo.pages.dev"
 ```
 
 ### 실행
@@ -416,20 +416,20 @@ chmod +x deploy.sh
 
 ```bash
 # 배포 로그 실시간 확인
-npx wrangler pages deployment tail --project-name ganghe
+npx wrangler pages deployment tail --project-name gatchi-gayo
 
 # D1 데이터베이스 쿼리
 npx wrangler d1 execute webapp-production \
   --command="SELECT * FROM users LIMIT 10"
 
 # 환경 변수 확인
-npx wrangler pages secret list --project-name ganghe
+npx wrangler pages secret list --project-name gatchi-gayo
 
 # 배포 내역 확인
-npx wrangler pages deployment list --project-name ganghe
+npx wrangler pages deployment list --project-name gatchi-gayo
 
 # 특정 배포 롤백
-npx wrangler pages deployment rollback --project-name ganghe
+npx wrangler pages deployment rollback --project-name gatchi-gayo
 ```
 
 ---
@@ -440,11 +440,11 @@ npx wrangler pages deployment rollback --project-name ganghe
 
 ```bash
 # 도메인 추가
-npx wrangler pages domain add your-domain.com --project-name ganghe
+npx wrangler pages domain add your-domain.com --project-name gatchi-gayo
 
 # DNS 설정
 # your-domain.com의 DNS에 CNAME 레코드 추가:
-# CNAME @ ganghe.pages.dev
+# CNAME @ gatchi-gayo.pages.dev
 ```
 
 ### GitHub Actions 자동 배포
@@ -470,7 +470,7 @@ jobs:
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          command: pages deploy dist --project-name ganghe
+          command: pages deploy dist --project-name gatchi-gayo
 ```
 
 ---
@@ -478,7 +478,7 @@ jobs:
 ## 연락처
 
 문제 발생 시:
-1. Cloudflare Dashboard > Pages > ganghe > Logs 확인
+1. Cloudflare Dashboard > Pages > gatchi-gayo > Logs 확인
 2. 브라우저 F12 > Console/Network 확인
 3. 각 서비스 콘솔에서 설정 재확인
 

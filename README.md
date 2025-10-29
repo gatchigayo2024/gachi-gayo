@@ -212,7 +212,7 @@ KAKAO_JAVASCRIPT_KEY=your_javascript_key_here
 **프로덕션 배포 설정:**
 ```bash
 # Cloudflare Pages 시크릿으로 설정
-npx wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name ganghe
+npx wrangler pages secret put KAKAO_JAVASCRIPT_KEY --project-name gatchi-gayo
 ```
 
 ### 디버깅
