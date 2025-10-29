@@ -1343,14 +1343,63 @@ function renderGatheringCardSmall(gathering) {
       </div>
       
       <div class="flex items-center justify-between">
-        <button type="button" onclick="event.stopPropagation(); toggleGatheringLike(null, ${gathering.id})" class="flex items-center gap-1 text-sm ${isLiked ? 'text-red-500' : 'text-gray-600'}">
+        <button type="button" onclick="event.stopPropagation(); toggleGatheringLikeSmall(${gathering.id})" class="flex items-center gap-1 text-sm ${isLiked ? 'text-red-500' : 'text-gray-600'}" id="small-like-btn-${gathering.id}">
           <i class="fas fa-heart"></i>
-          <span>${gathering.like_count || 0}</span>
+          <span id="small-like-count-${gathering.id}">${gathering.like_count || 0}</span>
         </button>
         <span class="text-xs text-green-600 font-medium">모집 중</span>
       </div>
     </div>
   `
+}
+
+// 작은 카드에서 같이가요 좋아요 토글 (특가 할인 상세에서 사용)
+async function toggleGatheringLikeSmall(gatheringId) {
+  if (!requireLogin(() => toggleGatheringLikeSmall(gatheringId))) return
+  
+  try {
+    console.log('❤️ 작은 카드 좋아요 토글:', { gathering_id: gatheringId, user_id: APP_STATE.currentUser.id })
+    
+    const res = await fetch(`/api/gatherings/${gatheringId}/like`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
+    })
+    
+    const data = await res.json()
+    console.log('❤️ 좋아요 토글 응답:', data)
+    
+    if (data.success) {
+      // 최신 데이터 가져오기
+      const userId = APP_STATE.currentUser?.id
+      const url = userId ? `/api/gatherings/${gatheringId}?user_id=${userId}` : `/api/gatherings/${gatheringId}`
+      const detailRes = await fetch(url)
+      const detailData = await detailRes.json()
+      
+      if (detailData.success) {
+        const gathering = detailData.gathering
+        const isLiked = gathering.is_liked > 0
+        
+        // 좋아요 개수 업데이트
+        const countElement = document.getElementById(`small-like-count-${gatheringId}`)
+        if (countElement) {
+          countElement.textContent = gathering.like_count || 0
+        }
+        
+        // 버튼 색상 업데이트
+        const button = document.getElementById(`small-like-btn-${gatheringId}`)
+        if (button) {
+          button.className = `flex items-center gap-1 text-sm ${isLiked ? 'text-red-500' : 'text-gray-600'}`
+        }
+      }
+    } else {
+      console.error('❌ 좋아요 토글 실패:', data.error)
+      alert('좋아요 처리에 실패했습니다.')
+    }
+  } catch (error) {
+    console.error('❌ 좋아요 토글 오류:', error)
+    alert('좋아요 처리 중 오류가 발생했습니다.')
+  }
 }
 
 // 같이가요 좋아요 토글
