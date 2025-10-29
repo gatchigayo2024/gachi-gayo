@@ -172,7 +172,7 @@ app.post('/api/auth/phone-login', async (c) => {
     }
     
     const result = await c.env.DB.prepare(
-      'INSERT INTO users (phone, name, phone_verified) VALUES (?, ?, 1)'
+      'INSERT INTO users (phone, name) VALUES (?, ?)'
     ).bind(phone, name).run()
 
     const newUser = await c.env.DB.prepare(
