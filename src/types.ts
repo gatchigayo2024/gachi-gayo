@@ -3,6 +3,8 @@ export type Bindings = {
   KAKAO_JAVASCRIPT_KEY: string;
   NAVER_MAP_CLIENT_ID: string;
   NAVER_MAP_CLIENT_SECRET: string;
+  NAVER_SEARCH_CLIENT_ID: string;
+  NAVER_SEARCH_CLIENT_SECRET: string;
   ALIGO_API_KEY: string;
   ALIGO_USER_ID: string;
   ALIGO_SENDER: string;

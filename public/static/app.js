@@ -1264,12 +1264,20 @@ async function renderGatheringsPage() {
           <p class="text-gray-600 text-sm">같이 갈 사람을 찾을 수 있어요</p>
         </div>
         
-        <div class="space-y-4 p-4">
+        <div class="space-y-4 p-4 pb-24">
           ${APP_STATE.gatherings.length > 0 ? 
             APP_STATE.gatherings.map(g => renderGatheringCard(g)).join('') :
             '<p class="text-center text-gray-500 py-8">아직 같이가요 포스팅이 없습니다</p>'
           }
         </div>
+        
+        <!-- 플로팅 글쓰기 버튼 -->
+        <button 
+          onclick="showCreateGatheringModal()" 
+          class="fixed bottom-20 right-4 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center text-xl z-50 transition-transform hover:scale-110"
+        >
+          <i class="fas fa-pen"></i>
+        </button>
       </div>
     `
     
@@ -1626,7 +1634,253 @@ async function applyGathering() {
   })
 }
 
-// 같이가요 작성하기
+// 같이가요 독립 작성 모달 (플로팅 버튼용)
+function showCreateGatheringModal() {
+  if (!requireLogin(() => showCreateGatheringModal())) return
+  
+  const html = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" id="createGatheringModal" onclick="if(event.target.id==='createGatheringModal') closeCreateGatheringModal()">
+      <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
+          <h2 class="text-lg font-bold">같이가요 작성</h2>
+          <button type="button" onclick="closeCreateGatheringModal()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        
+        <div class="p-4">
+          <form onsubmit="submitIndependentGathering(event)" class="space-y-4">
+            <div>
+              <label class="block font-medium mb-2">제목</label>
+              <input type="text" id="modal-title" required class="w-full border rounded-lg px-3 py-2" placeholder="제목을 입력하세요">
+            </div>
+            
+            <div>
+              <label class="block font-medium mb-2">내용</label>
+              <textarea id="modal-content" required rows="5" class="w-full border rounded-lg px-3 py-2" placeholder="내용을 입력하세요"></textarea>
+            </div>
+            
+            <!-- 장소 검색 -->
+            <div>
+              <label class="block font-medium mb-2">장소 검색</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  id="place-search-input"
+                  class="w-full border rounded-lg px-3 py-2 pr-10" 
+                  placeholder="장소명을 입력하세요 (예: 연희동 와인률)"
+                  onkeyup="searchPlacesDebounced(this.value)"
+                  autocomplete="off"
+                >
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+              </div>
+              
+              <!-- 검색 결과 -->
+              <div id="place-search-results" class="mt-2 border rounded-lg max-h-60 overflow-y-auto hidden"></div>
+              
+              <!-- 선택된 장소 표시 -->
+              <div id="selected-place-display" class="mt-2"></div>
+            </div>
+            
+            <!-- 숨김 필드 -->
+            <input type="hidden" id="modal-place-name">
+            <input type="hidden" id="modal-place-address">
+            <input type="hidden" id="modal-place-lat">
+            <input type="hidden" id="modal-place-lng">
+            
+            <div>
+              <label class="block font-medium mb-2">날짜</label>
+              <input type="text" id="modal-date" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 2025년 10월 25일 또는 추후 조율">
+            </div>
+            
+            <div>
+              <label class="block font-medium mb-2">시간</label>
+              <input type="text" id="modal-time" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 오후 7:00 또는 저녁">
+            </div>
+            
+            <div>
+              <label class="block font-medium mb-2">최대 인원 (본인 포함)</label>
+              <input type="number" id="modal-max-people" value="4" min="2" max="20" class="w-full border rounded-lg px-3 py-2">
+            </div>
+            
+            <div>
+              <label class="block font-medium mb-2">동행 신청자에게 할 질문 (선택)</label>
+              <input type="text" id="modal-question" class="w-full border rounded-lg px-3 py-2" placeholder="예: 간단하게 자기소개를 해주실 수 있을까요?">
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+              <p class="mb-2"><strong>안내 사항</strong></p>
+              <p class="mb-1">1. 동행 신청자가 발생하면 같이가요 1:1 채팅방에서 정보를 알려드리고, 수락/거절 여부를 선택하실 수 있어요</p>
+              <p>2. 동행 수락된 유저들과의 단톡방에서 관리자가 일정 예약과 결제 관련 사항들을 안내해드려요</p>
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
+              작성 완료
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `
+  
+  document.body.insertAdjacentHTML('beforeend', html)
+}
+
+function closeCreateGatheringModal() {
+  document.getElementById('createGatheringModal')?.remove()
+}
+
+// 장소 검색 디바운스
+let searchTimeout
+function searchPlacesDebounced(keyword) {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    searchPlaces(keyword)
+  }, 300)
+}
+
+// 장소 검색
+async function searchPlaces(keyword) {
+  const resultsDiv = document.getElementById('place-search-results')
+  
+  if (!keyword || keyword.trim().length < 2) {
+    resultsDiv.innerHTML = ''
+    resultsDiv.classList.add('hidden')
+    return
+  }
+  
+  try {
+    console.log('🔍 장소 검색:', keyword)
+    
+    const res = await fetch(`/api/search/places?query=${encodeURIComponent(keyword)}`)
+    const data = await res.json()
+    
+    console.log('🔍 검색 결과:', data)
+    
+    if (data.success && data.places && data.places.length > 0) {
+      const html = data.places.map(place => `
+        <div 
+          onclick="selectPlace('${place.title.replace(/'/g, "\\'")}', '${(place.roadAddress || place.address).replace(/'/g, "\\'")}', ${place.lng}, ${place.lat})"
+          class="p-3 border-b hover:bg-gray-50 cursor-pointer"
+        >
+          <div class="font-medium">${place.title}</div>
+          <div class="text-sm text-gray-600">${place.roadAddress || place.address}</div>
+          <div class="text-xs text-gray-500">${place.category}</div>
+        </div>
+      `).join('')
+      
+      resultsDiv.innerHTML = html
+      resultsDiv.classList.remove('hidden')
+    } else {
+      resultsDiv.innerHTML = '<div class="p-4 text-gray-500 text-sm text-center">검색 결과가 없습니다</div>'
+      resultsDiv.classList.remove('hidden')
+    }
+  } catch (error) {
+    console.error('❌ 장소 검색 오류:', error)
+    resultsDiv.innerHTML = '<div class="p-4 text-red-500 text-sm text-center">검색 중 오류가 발생했습니다</div>'
+    resultsDiv.classList.remove('hidden')
+  }
+}
+
+// 장소 선택
+function selectPlace(name, address, lng, lat) {
+  console.log('📍 장소 선택:', { name, address, lng, lat })
+  
+  // 숨김 필드에 값 설정
+  document.getElementById('modal-place-name').value = name
+  document.getElementById('modal-place-address').value = address
+  document.getElementById('modal-place-lat').value = lat
+  document.getElementById('modal-place-lng').value = lng
+  
+  // 검색 결과 숨기기
+  document.getElementById('place-search-results').innerHTML = ''
+  document.getElementById('place-search-results').classList.add('hidden')
+  
+  // 검색창 비우기
+  document.getElementById('place-search-input').value = ''
+  
+  // 선택된 장소 표시
+  document.getElementById('selected-place-display').innerHTML = `
+    <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-medium text-green-900">✓ ${name}</div>
+          <div class="text-sm text-green-700">${address}</div>
+        </div>
+        <button type="button" onclick="clearSelectedPlace()" class="text-red-500 hover:text-red-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  `
+}
+
+// 선택된 장소 지우기
+function clearSelectedPlace() {
+  document.getElementById('modal-place-name').value = ''
+  document.getElementById('modal-place-address').value = ''
+  document.getElementById('modal-place-lat').value = ''
+  document.getElementById('modal-place-lng').value = ''
+  document.getElementById('selected-place-display').innerHTML = ''
+}
+
+// 독립 같이가요 작성 제출
+async function submitIndependentGathering(e) {
+  e.preventDefault()
+  
+  // 장소 선택 확인
+  const placeName = document.getElementById('modal-place-name').value
+  if (!placeName) {
+    alert('장소를 검색하여 선택해주세요.')
+    return
+  }
+  
+  try {
+    const data = {
+      user_id: APP_STATE.currentUser.id,
+      special_deal_id: null,  // 특가 할인 연결 없음
+      title: document.getElementById('modal-title').value,
+      content: document.getElementById('modal-content').value,
+      date_text: document.getElementById('modal-date').value,
+      time_text: document.getElementById('modal-time').value,
+      place_name: document.getElementById('modal-place-name').value,
+      place_address: document.getElementById('modal-place-address').value,
+      place_lat: parseFloat(document.getElementById('modal-place-lat').value),
+      place_lng: parseFloat(document.getElementById('modal-place-lng').value),
+      max_people: parseInt(document.getElementById('modal-max-people').value),
+      question: document.getElementById('modal-question').value || null
+    }
+    
+    console.log('📝 독립 같이가요 작성 요청:', data)
+    
+    const res = await fetch('/api/gatherings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    
+    const result = await res.json()
+    console.log('📝 작성 응답:', result)
+    
+    if (result.success) {
+      closeCreateGatheringModal()
+      showSuccessModal(
+        '포스팅 작성에 성공했습니다.<br>동행 신청자 발생 시 문자로 안내해드립니다.',
+        () => {
+          navigateTo('gatherings')
+        }
+      )
+    } else {
+      console.error('❌ 작성 실패:', result.error)
+      alert('포스팅 작성에 실패했습니다: ' + (result.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 같이가요 작성 중 오류:', error)
+    alert('포스팅 작성 중 오류가 발생했습니다: ' + error.message)
+  }
+}
+
+// 같이가요 작성하기 (특가 할인 상세에서)
 function showCreateGathering() {
   if (!requireLogin(() => showCreateGathering())) return
   

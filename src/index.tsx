@@ -301,6 +301,48 @@ app.post('/api/deals/:id/like', async (c) => {
   }
 })
 
+// 장소 검색 API (네이버 지역 검색)
+app.get('/api/search/places', async (c) => {
+  const query = c.req.query('query')
+  
+  if (!query) {
+    return c.json({ success: false, error: '검색어를 입력해주세요.' }, 400)
+  }
+  
+  try {
+    console.log('🔍 장소 검색:', query)
+    
+    const response = await fetch(
+      `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=10`,
+      {
+        headers: {
+          'X-Naver-Client-Id': c.env.NAVER_SEARCH_CLIENT_ID,
+          'X-Naver-Client-Secret': c.env.NAVER_SEARCH_CLIENT_SECRET
+        }
+      }
+    )
+    
+    const data = await response.json()
+    console.log('🔍 검색 결과:', data.items?.length || 0, '개')
+    
+    // 좌표 변환 및 HTML 태그 제거
+    const places = data.items?.map(item => ({
+      title: item.title.replace(/<\/?b>/g, ''), // HTML 태그 제거
+      address: item.address,
+      roadAddress: item.roadAddress,
+      category: item.category,
+      telephone: item.telephone,
+      lng: parseInt(item.mapx) / 10000000,  // 경도 변환
+      lat: parseInt(item.mapy) / 10000000   // 위도 변환
+    })) || []
+    
+    return c.json({ success: true, places })
+  } catch (error) {
+    console.error('❌ 장소 검색 오류:', error)
+    return c.json({ success: false, error: '장소 검색에 실패했습니다.' }, 500)
+  }
+})
+
 // 같이가요 목록 조회
 app.get('/api/gatherings', async (c) => {
   try {
