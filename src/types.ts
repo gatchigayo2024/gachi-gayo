@@ -1,5 +1,12 @@
 export type Bindings = {
   DB: D1Database;
+  KAKAO_JAVASCRIPT_KEY: string;
+  NAVER_MAP_CLIENT_ID: string;
+  NAVER_MAP_CLIENT_SECRET: string;
+  ALIGO_API_KEY: string;
+  ALIGO_USER_ID: string;
+  ALIGO_SENDER: string;
+  ENVIRONMENT?: string;
 }
 
 export interface User {

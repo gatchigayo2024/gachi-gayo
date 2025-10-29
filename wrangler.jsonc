@@ -8,10 +8,7 @@
   ],
   "vars": {
     "NAVER_MAP_CLIENT_ID": "wj2ya61n2i",
-    "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog",
-    "ALIGO_API_KEY": "",
-    "ALIGO_USER_ID": "",
-    "ALIGO_SENDER": ""
+    "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog"
   },
   "d1_databases": [
     {
