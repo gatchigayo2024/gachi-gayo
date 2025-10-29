@@ -10,9 +10,10 @@
 
 ## 공개 URL
 
-- **프로덕션**: https://173b56f3.gatchi-gayo.pages.dev (또는 https://gatchi-gayo.pages.dev)
-- **특가 할인 API**: https://173b56f3.gatchi-gayo.pages.dev/api/deals
-- **같이가요 API**: https://173b56f3.gatchi-gayo.pages.dev/api/gatherings
+- **프로덕션**: https://gatchi-gayo.pages.dev
+- **특가 할인 API**: https://gatchi-gayo.pages.dev/api/deals
+- **같이가요 API**: https://gatchi-gayo.pages.dev/api/gatherings
+- **현재 배포 버전**: https://173b56f3.gatchi-gayo.pages.dev
 
 ## 데이터 아키텍처
 
@@ -168,7 +169,7 @@
 
 - **플랫폼**: Cloudflare Pages
 - **현재 상태**: ✅ 프로덕션 배포 완료
-- **프로덕션 URL**: https://173b56f3.gatchi-gayo.pages.dev
+- **프로덕션 URL**: https://gatchi-gayo.pages.dev
 - **데이터베이스**: Cloudflare D1 (프로덕션)
 - **마지막 업데이트**: 2025-10-29
 - **환경 변수**: 
