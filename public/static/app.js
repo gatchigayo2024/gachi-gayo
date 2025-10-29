@@ -930,8 +930,15 @@ function shareDeal(dealId) {
     return
   }
   
+  console.log('🔍 카카오 공유 시작:', {
+    initialized: Kakao.isInitialized(),
+    dealId: dealId,
+    origin: window.location.origin
+  })
+  
   if (!Kakao.isInitialized()) {
-    alert('카카오톡 공유 기능을 사용할 수 없습니다.')
+    alert('카카오톡 공유 기능을 사용할 수 없습니다.\n\n카카오 SDK가 초기화되지 않았습니다.')
+    console.error('❌ Kakao SDK 초기화 안됨')
     return
   }
   
@@ -941,6 +948,12 @@ function shareDeal(dealId) {
   
   // 카카오톡 공유하기
   try {
+    console.log('📤 카카오 공유 요청 데이터:', {
+      title: `🍽️ ${deal.title}`,
+      imageUrl: thumbnailUrl,
+      link: `${window.location.origin}/?deal=${dealId}`
+    })
+    
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
@@ -962,9 +975,27 @@ function shareDeal(dealId) {
         }
       ]
     })
+    console.log('✅ 카카오 공유 요청 성공')
   } catch (error) {
-    console.error('카카오 공유 오류:', error)
-    alert(`카카오톡 공유에 실패했습니다.\n\n현재 도메인: ${window.location.origin}\n\n카카오 개발자 콘솔에서 이 도메인을 등록해주세요:\nhttps://developers.kakao.com/console/app`)
+    console.error('❌ 카카오 공유 오류 상세:', error)
+    console.error('에러 타입:', error.name)
+    console.error('에러 메시지:', error.message)
+    
+    let errorMessage = `카카오톡 공유에 실패했습니다.\n\n`
+    errorMessage += `현재 도메인: ${window.location.origin}\n`
+    errorMessage += `JavaScript 키: ${window.KAKAO_KEY}\n\n`
+    
+    if (error.message) {
+      errorMessage += `오류: ${error.message}\n\n`
+    }
+    
+    errorMessage += `해결 방법:\n`
+    errorMessage += `1. 카카오 개발자 콘솔에서 도메인 확인\n`
+    errorMessage += `2. JavaScript 키가 올바른지 확인\n`
+    errorMessage += `3. 앱 설정 > 일반 > 앱 키 확인\n\n`
+    errorMessage += `콘솔(F12)에서 자세한 오류를 확인하세요.`
+    
+    alert(errorMessage)
   }
 }
 
@@ -977,13 +1008,25 @@ function shareGathering(gatheringId) {
     return
   }
   
+  console.log('🔍 카카오 공유 시작 (같이가요):', {
+    initialized: Kakao.isInitialized(),
+    gatheringId: gatheringId,
+    origin: window.location.origin
+  })
+  
   if (!Kakao.isInitialized()) {
-    alert('카카오톡 공유 기능을 사용할 수 없습니다.')
+    alert('카카오톡 공유 기능을 사용할 수 없습니다.\n\n카카오 SDK가 초기화되지 않았습니다.')
+    console.error('❌ Kakao SDK 초기화 안됨')
     return
   }
   
   // 카카오톡 공유하기
   try {
+    console.log('📤 카카오 공유 요청 데이터 (같이가요):', {
+      title: `👥 ${gathering.title}`,
+      link: `${window.location.origin}/?gathering=${gatheringId}`
+    })
+    
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
@@ -1005,9 +1048,27 @@ function shareGathering(gatheringId) {
         }
       ]
     })
+    console.log('✅ 카카오 공유 요청 성공 (같이가요)')
   } catch (error) {
-    console.error('카카오 공유 오류:', error)
-    alert(`카카오톡 공유에 실패했습니다.\n\n현재 도메인: ${window.location.origin}\n\n카카오 개발자 콘솔에서 이 도메인을 등록해주세요:\nhttps://developers.kakao.com/console/app`)
+    console.error('❌ 카카오 공유 오류 상세 (같이가요):', error)
+    console.error('에러 타입:', error.name)
+    console.error('에러 메시지:', error.message)
+    
+    let errorMessage = `카카오톡 공유에 실패했습니다.\n\n`
+    errorMessage += `현재 도메인: ${window.location.origin}\n`
+    errorMessage += `JavaScript 키: ${window.KAKAO_KEY}\n\n`
+    
+    if (error.message) {
+      errorMessage += `오류: ${error.message}\n\n`
+    }
+    
+    errorMessage += `해결 방법:\n`
+    errorMessage += `1. 카카오 개발자 콘솔에서 도메인 확인\n`
+    errorMessage += `2. JavaScript 키가 올바른지 확인\n`
+    errorMessage += `3. 앱 설정 > 일반 > 앱 키 확인\n\n`
+    errorMessage += `콘솔(F12)에서 자세한 오류를 확인하세요.`
+    
+    alert(errorMessage)
   }
 }
 
@@ -2002,11 +2063,21 @@ async function sendAdminEmail(type, data) {
 // Kakao SDK 초기화
 if (typeof Kakao !== 'undefined' && window.KAKAO_KEY) {
   if (!Kakao.isInitialized()) {
-    Kakao.init(window.KAKAO_KEY)
-    console.log('✅ Kakao SDK 초기화 완료')
+    try {
+      Kakao.init(window.KAKAO_KEY)
+      console.log('✅ Kakao SDK 초기화 완료')
+      console.log('📱 JavaScript 키:', window.KAKAO_KEY)
+      console.log('🌐 현재 도메인:', window.location.origin)
+    } catch (error) {
+      console.error('❌ Kakao SDK 초기화 실패:', error)
+    }
+  } else {
+    console.log('✅ Kakao SDK 이미 초기화됨')
   }
 } else {
   console.warn('⚠️ Kakao SDK를 불러올 수 없습니다')
+  console.warn('Kakao 객체:', typeof Kakao)
+  console.warn('KAKAO_KEY:', window.KAKAO_KEY)
 }
 
 loadUser()
