@@ -172,7 +172,7 @@ app.post('/api/auth/phone-login', async (c) => {
     }
     
     const result = await c.env.DB.prepare(
-      'INSERT INTO users (phone, name, phone_verified) VALUES (?, ?, 1)'
+      'INSERT INTO users (phone, name, kakao_id, phone_verified) VALUES (?, ?, NULL, 1)'
     ).bind(phone, name).run()
 
     const newUser = await c.env.DB.prepare(
@@ -182,7 +182,13 @@ app.post('/api/auth/phone-login', async (c) => {
     return c.json({ success: true, user: newUser, isNewUser: true })
   } catch (error) {
     console.error('Phone login error:', error)
-    return c.json({ success: false, error: '로그인 중 오류가 발생했습니다.' }, 500)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    return c.json({ 
+      success: false, 
+      error: '로그인 중 오류가 발생했습니다.',
+      details: error.message // 개발용
+    }, 500)
   }
 })
 
