@@ -295,6 +295,8 @@ async function verifyAuthCode() {
     
     const loginData = await loginRes.json()
     
+    console.log('📱 로그인 응답:', loginData)
+    
     if (loginData.success) {
       // 로컬 사용자 정보 저장
       saveUser(loginData.user)
@@ -302,18 +304,20 @@ async function verifyAuthCode() {
       // 모달 닫기
       closePhoneAuth()
       
-      // 성공 메시지
+      // 성공 메시지 표시
+      let successMessage = ''
       if (loginData.isNewUser) {
-        showSuccessModal('회원가입이 완료되었습니다!<br>같이가요를 시작해보세요.', () => {
-          // 로그인 콜백 실행
-          if (APP_STATE.loginCallback) {
-            APP_STATE.loginCallback()
-            APP_STATE.loginCallback = null
-          } else {
-            renderCurrentPage()
-          }
-        })
+        // 신규 회원가입
+        successMessage = '회원가입이 완료되었습니다!<br>같이가요를 시작해보세요.'
+      } else if (loginData.nameUpdated) {
+        // 기존 회원, 닉네임 업데이트
+        successMessage = `로그인되었습니다!<br>닉네임이 "${loginData.user.name}"(으)로 변경되었습니다.`
       } else {
+        // 기존 회원, 로그인만
+        successMessage = `${loginData.user.name}님, 환영합니다!`
+      }
+      
+      showSuccessModal(successMessage, () => {
         // 로그인 콜백 실행
         if (APP_STATE.loginCallback) {
           APP_STATE.loginCallback()
@@ -321,13 +325,15 @@ async function verifyAuthCode() {
         } else {
           renderCurrentPage()
         }
-      }
+      })
     } else {
+      console.error('❌ 로그인 실패:', loginData.error)
       alert(loginData.error || '로그인에 실패했습니다.')
     }
   } catch (error) {
-    console.error('인증 확인 오류:', error)
-    alert('인증 확인 중 오류가 발생했습니다.')
+    console.error('❌ 인증 확인 오류:', error)
+    console.error('오류 상세:', error.message, error.stack)
+    alert('인증 확인 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.')
   }
 }
 
