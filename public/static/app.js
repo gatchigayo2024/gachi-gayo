@@ -298,13 +298,22 @@ async function verifyAuthCode() {
     console.log('📱 로그인 응답:', loginData)
     
     if (loginData.success) {
-      // 로컬 사용자 정보 저장
-      saveUser(loginData.user)
+      console.log('✅ 로그인 성공, 사용자 정보:', loginData.user)
       
-      // 모달 닫기
+      // 1. 로컬 사용자 정보 저장
+      saveUser(loginData.user)
+      console.log('✅ 사용자 정보 저장 완료, APP_STATE.currentUser:', APP_STATE.currentUser)
+      
+      // 2. 모달 닫기
       closePhoneAuth()
       
-      // 성공 메시지 표시
+      // 3. 현재 페이지 즉시 업데이트 (모달 닫기 전)
+      if (APP_STATE.currentPage === 'my') {
+        console.log('🔄 MY 페이지 즉시 업데이트')
+        renderMyPage()
+      }
+      
+      // 4. 성공 메시지 표시
       let successMessage = ''
       if (loginData.isNewUser) {
         // 신규 회원가입
@@ -320,10 +329,13 @@ async function verifyAuthCode() {
       showSuccessModal(successMessage, () => {
         // 로그인 콜백 실행
         if (APP_STATE.loginCallback) {
+          console.log('🔄 로그인 콜백 실행')
           APP_STATE.loginCallback()
           APP_STATE.loginCallback = null
         } else {
-          renderCurrentPage()
+          // 현재 페이지 다시 렌더링 (확실하게)
+          console.log('🔄 현재 페이지 최종 렌더링:', APP_STATE.currentPage)
+          navigateTo(APP_STATE.currentPage)
         }
       })
     } else {
