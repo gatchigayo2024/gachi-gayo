@@ -56,46 +56,96 @@ app.post('/api/sms/send', async (c) => {
     }
     
     // 프로덕션 모드: 실제 SMS 발송
-    const ALIGO_API_KEY = c.env.ALIGO_API_KEY || ''
-    const ALIGO_USER_ID = c.env.ALIGO_USER_ID || ''
-    const ALIGO_SENDER = c.env.ALIGO_SENDER || ''
-    
-    const formData = new URLSearchParams()
-    formData.append('key', ALIGO_API_KEY)
-    formData.append('user_id', ALIGO_USER_ID)
-    formData.append('sender', ALIGO_SENDER)
-    formData.append('receiver', phone)
-    formData.append('msg', `[같이가요] 인증번호는 [${code}] 입니다. 3분 이내에 입력해주세요.`)
-    formData.append('msg_type', 'SMS')
-    formData.append('title', '같이가요 인증번호')
-    
-    const response = await fetch('https://apis.aligo.in/send/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: formData.toString()
-    })
-    
-    const result = await response.json()
-    
-    if (result.result_code === '1') {
-      console.log('✅ SMS 발송 성공:', phone)
-      return c.json({ success: true, expiresAt })
-    } else {
-      console.error('❌ SMS 발송 실패:', result)
-      // IP 인증 오류인 경우 개발 모드로 폴백
-      if (result.result_code === -101 || result.result_code === '-101') {
-        console.log('🔧 IP 인증 오류 감지 - 개발 모드로 전환')
-        console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', phone)
-        return c.json({ 
-          success: true, 
-          expiresAt,
-          devMode: true,
-          devCode: code
-        })
+    // NHN Cloud SMS 우선 사용, 없으면 Aligo 사용
+    if (c.env.NHN_SMS_APP_KEY && c.env.NHN_SMS_SENDER) {
+      // NHN Cloud SMS 발송
+      console.log('📱 NHN Cloud SMS 사용')
+      
+      const NHN_APP_KEY = c.env.NHN_SMS_APP_KEY
+      const NHN_SECRET_KEY = c.env.NHN_SMS_SECRET_KEY || ''
+      const NHN_SENDER = c.env.NHN_SMS_SENDER
+      
+      const smsData = {
+        body: `[같이가요] 인증번호는 [${code}] 입니다. 3분 이내에 입력해주세요.`,
+        sendNo: NHN_SENDER,
+        recipientList: [
+          {
+            recipientNo: phone,
+            templateParameter: {}
+          }
+        ]
       }
-      return c.json({ success: false, error: 'SMS 발송에 실패했습니다.' }, 500)
+      
+      const response = await fetch(
+        `https://api-sms.cloud.toast.com/sms/v3.0/appKeys/${NHN_APP_KEY}/sender/sms`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'X-Secret-Key': NHN_SECRET_KEY
+          },
+          body: JSON.stringify(smsData)
+        }
+      )
+      
+      const result = await response.json()
+      
+      if (result.header?.isSuccessful || response.ok) {
+        console.log('✅ NHN Cloud SMS 발송 성공:', phone)
+        return c.json({ success: true, expiresAt })
+      } else {
+        console.error('❌ NHN Cloud SMS 발송 실패:', result)
+        return c.json({ 
+          success: false, 
+          error: 'SMS 발송에 실패했습니다.',
+          details: result.header?.resultMessage 
+        }, 500)
+      }
+    } else {
+      // Aligo SMS 발송 (폴백)
+      console.log('📱 Aligo SMS 사용')
+      
+      const ALIGO_API_KEY = c.env.ALIGO_API_KEY || ''
+      const ALIGO_USER_ID = c.env.ALIGO_USER_ID || ''
+      const ALIGO_SENDER = c.env.ALIGO_SENDER || ''
+      
+      const formData = new URLSearchParams()
+      formData.append('key', ALIGO_API_KEY)
+      formData.append('user_id', ALIGO_USER_ID)
+      formData.append('sender', ALIGO_SENDER)
+      formData.append('receiver', phone)
+      formData.append('msg', `[같이가요] 인증번호는 [${code}] 입니다. 3분 이내에 입력해주세요.`)
+      formData.append('msg_type', 'SMS')
+      formData.append('title', '같이가요 인증번호')
+      
+      const response = await fetch('https://apis.aligo.in/send/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+      })
+      
+      const result = await response.json()
+      
+      if (result.result_code === '1') {
+        console.log('✅ Aligo SMS 발송 성공:', phone)
+        return c.json({ success: true, expiresAt })
+      } else {
+        console.error('❌ Aligo SMS 발송 실패:', result)
+        // IP 인증 오류인 경우 개발 모드로 폴백
+        if (result.result_code === -101 || result.result_code === '-101') {
+          console.log('🔧 IP 인증 오류 감지 - 개발 모드로 전환')
+          console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', phone)
+          return c.json({ 
+            success: true, 
+            expiresAt,
+            devMode: true,
+            devCode: code
+          })
+        }
+        return c.json({ success: false, error: 'SMS 발송에 실패했습니다.' }, 500)
+      }
     }
   } catch (error) {
     console.error('SMS send error:', error)
@@ -162,7 +212,29 @@ app.post('/api/auth/phone-login', async (c) => {
     ).bind(phone).first()
 
     if (existingUser) {
-      // 기존 사용자 로그인
+      // 기존 사용자: 닉네임이 다르면 업데이트
+      if (name && name !== existingUser.name) {
+        console.log(`🔄 닉네임 업데이트: "${existingUser.name}" → "${name}"`)
+        
+        await c.env.DB.prepare(
+          'UPDATE users SET name = ? WHERE id = ?'
+        ).bind(name, existingUser.id).run()
+        
+        // 업데이트된 사용자 정보 다시 조회
+        const updatedUser = await c.env.DB.prepare(
+          'SELECT * FROM users WHERE id = ?'
+        ).bind(existingUser.id).first()
+        
+        return c.json({ 
+          success: true, 
+          user: updatedUser, 
+          isNewUser: false,
+          nameUpdated: true
+        })
+      }
+      
+      // 닉네임 변경 없이 로그인
+      console.log(`✅ 기존 사용자 로그인: ${existingUser.name}`)
       return c.json({ success: true, user: existingUser, isNewUser: false })
     }
 
@@ -170,6 +242,8 @@ app.post('/api/auth/phone-login', async (c) => {
     if (!name) {
       return c.json({ success: false, error: '이름을 입력해주세요.' }, 400)
     }
+    
+    console.log(`🆕 신규 회원가입: ${name} (${phone})`)
     
     // phone 전용 kakao_id 생성 (UNIQUE 제약 우회)
     const phoneBasedKakaoId = `phone_${phone}`

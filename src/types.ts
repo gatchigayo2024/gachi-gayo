@@ -8,6 +8,9 @@ export type Bindings = {
   ALIGO_API_KEY: string;
   ALIGO_USER_ID: string;
   ALIGO_SENDER: string;
+  NHN_SMS_APP_KEY?: string;
+  NHN_SMS_SECRET_KEY?: string;
+  NHN_SMS_SENDER?: string;
   ENVIRONMENT?: string;
 }
 
