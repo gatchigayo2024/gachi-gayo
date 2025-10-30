@@ -312,15 +312,33 @@ app.get('/api/search/places', async (c) => {
   try {
     console.log('🔍 장소 검색:', query)
     
-    const response = await fetch(
-      `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=10`,
-      {
-        headers: {
-          'X-Naver-Client-Id': c.env.NAVER_SEARCH_CLIENT_ID,
-          'X-Naver-Client-Secret': c.env.NAVER_SEARCH_CLIENT_SECRET
-        }
+    // URLSearchParams를 사용하여 올바른 URL 인코딩 보장
+    const searchParams = new URLSearchParams({
+      query: query,
+      display: '10'
+    })
+    
+    const apiUrl = `https://openapi.naver.com/v1/search/local.json?${searchParams.toString()}`
+    console.log('🔗 API URL:', apiUrl)
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        'X-Naver-Client-Id': c.env.NAVER_SEARCH_CLIENT_ID,
+        'X-Naver-Client-Secret': c.env.NAVER_SEARCH_CLIENT_SECRET,
+        'Accept': 'application/json',
+        'Accept-Charset': 'utf-8'
       }
-    )
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ API 응답 오류:', response.status, errorText)
+      return c.json({ 
+        success: false, 
+        error: `API 오류: ${response.status}`,
+        details: errorText 
+      }, 500)
+    }
     
     const data = await response.json()
     console.log('🔍 검색 결과:', data.items?.length || 0, '개')
@@ -339,7 +357,11 @@ app.get('/api/search/places', async (c) => {
     return c.json({ success: true, places })
   } catch (error) {
     console.error('❌ 장소 검색 오류:', error)
-    return c.json({ success: false, error: '장소 검색에 실패했습니다.' }, 500)
+    return c.json({ 
+      success: false, 
+      error: '장소 검색에 실패했습니다.',
+      details: error.message 
+    }, 500)
   }
 })
 
