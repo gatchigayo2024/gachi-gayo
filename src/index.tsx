@@ -462,13 +462,24 @@ app.post('/api/gatherings', async (c) => {
   try {
     const data = await c.req.json()
     
+    console.log('📝 같이가요 작성 요청:', {
+      user_id: data.user_id,
+      special_deal_id: data.special_deal_id,
+      title: data.title,
+      place_name: data.place_name
+    })
+    
+    // special_deal_id가 null이면 임시로 1을 사용 (데이터베이스 제약조건 때문)
+    // TODO: 데이터베이스 스키마 업데이트 후 null 허용
+    const specialDealId = data.special_deal_id || 1
+    
     const result = await c.env.DB.prepare(`
       INSERT INTO gatherings 
       (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, place_lat, place_lng, max_people, question)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.user_id,
-      data.special_deal_id,
+      specialDealId,
       data.title,
       data.content,
       data.date_text,
@@ -481,6 +492,8 @@ app.post('/api/gatherings', async (c) => {
       data.question || ''
     ).run()
 
+    console.log('✅ 같이가요 생성 성공, ID:', result.meta.last_row_id)
+
     const newGathering = await c.env.DB.prepare(
       'SELECT * FROM gatherings WHERE id = ?'
     ).bind(result.meta.last_row_id).first()
@@ -489,7 +502,14 @@ app.post('/api/gatherings', async (c) => {
     
     return c.json({ success: true, gathering: newGathering })
   } catch (error) {
-    return c.json({ success: false, error: 'Failed to create gathering' }, 500)
+    console.error('❌ 같이가요 작성 오류:', error)
+    console.error('❌ 오류 메시지:', error.message)
+    console.error('❌ 오류 스택:', error.stack)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to create gathering',
+      details: error.message 
+    }, 500)
   }
 })
 
