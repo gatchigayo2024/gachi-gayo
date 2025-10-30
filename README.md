@@ -68,6 +68,7 @@
 - 장소명과 주소
 - 좋아요 및 모집 상태
 - 포스팅 상세 보기
+- **플로팅 글쓰기 버튼** (특가 할인 없이 독립적으로 작성 가능)
 
 #### 4. 같이가요 상세 페이지
 - 포스팅 전체 내용
@@ -81,7 +82,11 @@
 - 제목, 내용 입력
 - 날짜, 시간 선택 (또는 자유 텍스트)
 - 최대 인원 설정
-- 장소 자동 입력 (연관 특가 할인)
+- **네이버 장소 검색** (실시간 검색, 자동 완성)
+  - 장소명 입력 시 네이버 지역 검색 API 자동 호출
+  - 검색 결과에서 장소 선택 시 자동 입력
+  - 장소명, 주소, 좌표 자동 등록
+- 장소 자동 입력 (연관 특가 할인 있는 경우)
 - 동행 신청자 대상 질문 작성
 - 채팅방 생성 신청
 
@@ -110,6 +115,11 @@
 - 장소 정보에 지도 이미지 표시
 - 클릭 시 네이버 지도 앱/웹 연결
 - 실제 음식점 좌표 데이터
+- **네이버 지역 검색 API 연동**
+  - 한글 장소명 실시간 검색
+  - 장소명, 주소, 도로명 주소, 카테고리, 좌표 반환
+  - 디바운싱 (300ms) 적용으로 API 호출 최적화
+  - HTML 태그 자동 제거
 
 ### 🔄 구현 예정 기능
 
@@ -123,8 +133,8 @@
    - 그룹 채팅방 생성 및 초대
 
 3. **네이버 지도 추가 기능**
-   - 장소 검색 기능
    - Dynamic Map 인터랙션
+   - 현재 위치 기반 장소 검색
 
 4. **포스팅 관리**
    - 같이가요 포스팅 수정
@@ -149,7 +159,12 @@
    - 상세 정보 및 연관 같이가요 확인
 
 4. **같이 갈 사람 찾기**
-   - 특가 할인 상세에서 "작성하기" 클릭
+   - **방법 1: 특가 할인과 연결**
+     - 특가 할인 상세에서 "작성하기" 클릭
+     - 장소 정보 자동 입력
+   - **방법 2: 독립적으로 작성**
+     - 같이가요 화면에서 플로팅 버튼 클릭
+     - 장소명 검색하여 선택 (네이버 지역 검색)
    - 제목, 내용, 날짜, 시간, 인원 입력
    - 동행 신청자에게 할 질문 작성
    - "채팅방 생성 신청하기" 클릭
@@ -171,12 +186,14 @@
 - **현재 상태**: ✅ 프로덕션 배포 완료
 - **프로덕션 URL**: https://gatchi-gayo.pages.dev
 - **데이터베이스**: Cloudflare D1 (프로덕션)
-- **마지막 업데이트**: 2025-10-29
+- **마지막 업데이트**: 2025-10-30
 - **환경 변수**: 
   - ✅ ALIGO_API_KEY (SMS 인증)
   - ✅ ALIGO_USER_ID (SMS 인증)
   - ✅ ALIGO_SENDER (SMS 발신번호)
   - ✅ KAKAO_JAVASCRIPT_KEY (카카오 공유)
+  - ✅ NAVER_SEARCH_CLIENT_ID (네이버 장소 검색)
+  - ✅ NAVER_SEARCH_CLIENT_SECRET (네이버 장소 검색)
 
 ## 중요 안내
 
@@ -236,8 +253,20 @@
 2. ✅ Client ID/Secret 발급 (완료)
 3. ⚠️ **Web Service URL 등록 필요**
    - 등록할 URL: `https://gatchi-gayo.pages.dev`
-   - 등록할 URL: `https://173b56f3.gatchi-gayo.pages.dev`
+   - 등록할 URL: `https://656d82d3.gatchi-gayo.pages.dev`
 4. ✅ 환경 변수 설정 완료 (wrangler.jsonc)
+
+#### 4. 네이버 검색 API (장소 검색)
+
+네이버 지역 검색을 위해 [Naver Developers](https://developers.naver.com/)에서:
+1. ✅ 애플리케이션 생성 (완료)
+2. ✅ 검색 API - 지역 사용 설정 (완료)
+3. ✅ Client ID/Secret 발급 (완료)
+   - Client ID: Z4gsw0UXxM34pCHpCm2w
+   - Client Secret: YQswkPGISd
+4. ✅ Cloudflare Pages 시크릿 설정 완료
+   - NAVER_SEARCH_CLIENT_ID
+   - NAVER_SEARCH_CLIENT_SECRET
 
 **로컬 개발 환경 설정:**
 ```bash
@@ -246,6 +275,8 @@ ALIGO_API_KEY=i8bzwls1lyjfsp56pzfenqifhf4uqc6x
 ALIGO_USER_ID=gatchigayo2024
 ALIGO_SENDER=070-4036-7411
 KAKAO_JAVASCRIPT_KEY=f43c7a0d5a13e6f50277e07f8a037b08
+NAVER_SEARCH_CLIENT_ID=Z4gsw0UXxM34pCHpCm2w
+NAVER_SEARCH_CLIENT_SECRET=YQswkPGISd
 ```
 
 ### 디버깅
@@ -321,6 +352,9 @@ npm run db:reset
 - `DELETE /api/gatherings/:id` - 포스팅 삭제
 - `POST /api/gatherings/:id/like` - 좋아요 토글
 - `POST /api/gatherings/:id/apply` - 동행 신청
+
+#### 장소 검색
+- `GET /api/search/places?query={검색어}` - 네이버 지역 검색
 
 #### MY
 - `GET /api/my/gatherings` - 내가 쓴 같이가요
