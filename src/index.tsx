@@ -135,13 +135,23 @@ app.post('/api/sms/send', async (c) => {
         console.error('❌ Aligo SMS 발송 실패:', result)
         // IP 인증 오류인 경우 개발 모드로 폴백
         if (result.result_code === -101 || result.result_code === '-101') {
+          // 실제 사용 중인 IP 주소 확인
+          const clientIP = c.req.header('cf-connecting-ip') || 
+                          c.req.header('x-forwarded-for') || 
+                          c.req.header('x-real-ip') || 
+                          'unknown'
+          
           console.log('🔧 IP 인증 오류 감지 - 개발 모드로 전환')
+          console.log('🔧 현재 서버 IP:', clientIP)
           console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', phone)
+          console.log('⚠️ Aligo에 이 IP를 등록하세요:', clientIP)
+          
           return c.json({ 
             success: true, 
             expiresAt,
             devMode: true,
-            devCode: code
+            devCode: code,
+            serverIP: clientIP
           })
         }
         return c.json({ success: false, error: 'SMS 발송에 실패했습니다.' }, 500)

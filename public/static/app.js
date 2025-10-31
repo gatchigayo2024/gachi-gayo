@@ -230,7 +230,8 @@ async function sendAuthCode() {
       
       // 개발 모드 메시지
       if (data.devMode && data.devCode) {
-        alert(`🔧 개발 모드\n\n인증번호: ${data.devCode}\n\n실제 SMS는 발송되지 않았습니다.\n위 인증번호를 입력하세요.`)
+        const ipInfo = data.serverIP ? `\n\n⚠️ Aligo에 이 IP를 등록하세요:\n${data.serverIP}` : ''
+        alert(`🔧 개발 모드\n\n인증번호: ${data.devCode}${ipInfo}\n\n실제 SMS는 발송되지 않았습니다.\n위 인증번호를 입력하세요.`)
       } else {
         alert('인증번호가 발송되었습니다.')
       }
