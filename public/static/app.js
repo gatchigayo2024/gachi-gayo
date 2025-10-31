@@ -383,16 +383,16 @@ function startAuthTimer() {
 function showSuccessModal(message, onConfirm) {
   const html = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="successModal">
-      <div class="bg-white rounded-lg shadow-lg max-w-[280px] w-full mx-4">
-        <div class="p-4 text-center">
-          <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-            <i class="fas fa-check text-lg text-green-600"></i>
+      <div class="bg-white rounded-lg shadow-lg max-w-[320px] w-full mx-4">
+        <div class="p-5 text-center">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <i class="fas fa-check text-xl text-green-600"></i>
           </div>
-          <p class="text-gray-700 text-xs leading-relaxed mb-3">${message}</p>
+          <p class="text-gray-700 text-sm leading-relaxed mb-4">${message}</p>
           <button 
             type="button"
             onclick="closeSuccessModal()"
-            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded text-xs transition-colors"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm transition-colors"
           >
             확인
           </button>
@@ -413,32 +413,32 @@ function showSuccessModal(message, onConfirm) {
 function showQuestionModal(question, onSubmit) {
   const html = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="questionModal">
-      <div class="bg-white rounded-lg shadow-lg max-w-[300px] w-full mx-4">
-        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-3 py-2">
+      <div class="bg-white rounded-lg shadow-lg max-w-[340px] w-full mx-4">
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-2.5">
           <h2 class="text-sm font-bold text-white">작성자의 질문</h2>
         </div>
-        <div class="p-3">
-          <div class="bg-purple-50 rounded p-2 mb-2">
-            <p class="text-gray-800 text-xs">${question}</p>
+        <div class="p-4">
+          <div class="bg-purple-50 rounded-lg p-3 mb-3">
+            <p class="text-gray-800 text-sm">${question}</p>
           </div>
           <textarea 
             id="answerInput"
-            class="w-full border border-gray-300 rounded px-2 py-1.5 focus:border-purple-500 focus:outline-none resize-none text-xs" 
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-purple-500 focus:outline-none resize-none text-sm" 
             rows="3"
             placeholder="답변을 입력하세요..."
           ></textarea>
-          <div class="flex space-x-2 mt-2">
+          <div class="flex space-x-2 mt-3">
             <button 
               type="button"
               onclick="closeQuestionModal()"
-              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-1.5 rounded text-xs transition-colors"
+              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg text-sm transition-colors"
             >
               취소
             </button>
             <button 
               type="button"
               onclick="submitQuestion()"
-              class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-1.5 rounded text-xs transition-colors"
+              class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition-colors"
             >
               제출
             </button>
