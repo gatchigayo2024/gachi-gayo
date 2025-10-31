@@ -7,11 +7,11 @@ PRAGMA foreign_keys=OFF;
 -- 트랜잭션 시작
 BEGIN TRANSACTION;
 
--- 1. 임시 테이블 생성
+-- 1. 임시 테이블 생성 (외래키 제약 제거)
 CREATE TABLE gatherings_new (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id INTEGER NOT NULL,
-  special_deal_id INTEGER,  -- NOT NULL 제거
+  special_deal_id INTEGER,  -- NOT NULL 제거, 외래키 제약 제거
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   date_text TEXT NOT NULL,
@@ -24,9 +24,7 @@ CREATE TABLE gatherings_new (
   current_people INTEGER DEFAULT 1,
   question TEXT,
   status TEXT DEFAULT 'open',
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (special_deal_id) REFERENCES special_deals(id)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. 기존 데이터 복사

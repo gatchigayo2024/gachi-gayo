@@ -538,19 +538,21 @@ function openNaverMapPlace(dealId) {
 function openNaverMapForGathering(gatheringId) {
   const g = APP_STATE.selectedGathering
   
-  console.log('🗺️ 네이버 지도 열기:', {
+  console.log('🗺️ 네이버 지도 열기 요청:', {
     gathering_id: gatheringId,
     place_name: g.place_name,
     place_lat: g.place_lat,
     place_lng: g.place_lng,
-    special_deal_id: g.special_deal_id
+    place_address: g.place_address
   })
   
   // 좌표 정보가 있으면 좌표로 지도 열기
   if (g.place_lat && g.place_lng) {
+    console.log('✅ 좌표로 지도 열기')
     openNaverMap(g.place_lat, g.place_lng, g.place_name)
   } else {
     // 좌표 정보가 없으면 장소명으로 검색
+    console.log('⚠️ 좌표 없음 - 장소명 검색으로 대체')
     const searchUrl = `https://map.naver.com/v5/search/${encodeURIComponent(g.place_name || g.place_address)}`
     window.open(searchUrl, '_blank')
   }
