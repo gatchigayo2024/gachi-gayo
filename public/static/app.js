@@ -531,14 +531,21 @@ function openNaverMapPlace(dealId) {
 function openNaverMapForGathering(gatheringId) {
   const g = APP_STATE.selectedGathering
   
-  // 같이가요가 특정 deal과 연결되어 있으면 해당 deal의 장소 ID 사용
-  if (g.special_deal_id === 1) {
-    // 와인률연희 장소 페이지로 이동
-    const url = `https://map.naver.com/p/entry/place/1035431851?c=15.00,0,0,0,dh`
-    window.open(url, '_blank')
+  console.log('🗺️ 네이버 지도 열기:', {
+    gathering_id: gatheringId,
+    place_name: g.place_name,
+    place_lat: g.place_lat,
+    place_lng: g.place_lng,
+    special_deal_id: g.special_deal_id
+  })
+  
+  // 좌표 정보가 있으면 좌표로 지도 열기
+  if (g.place_lat && g.place_lng) {
+    openNaverMap(g.place_lat, g.place_lng, g.place_name)
   } else {
-    // 기본 좌표로 열기
-    openNaverMap(g.place_lat || 37.5665, g.place_lng || 126.9780, g.place_name)
+    // 좌표 정보가 없으면 장소명으로 검색
+    const searchUrl = `https://map.naver.com/v5/search/${encodeURIComponent(g.place_name || g.place_address)}`
+    window.open(searchUrl, '_blank')
   }
 }
 
