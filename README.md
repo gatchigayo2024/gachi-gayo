@@ -14,7 +14,6 @@
 - **특가 할인 API**: https://gatchi-gayo.pages.dev/api/deals
 - **같이가요 API**: https://gatchi-gayo.pages.dev/api/gatherings
 - **현재 배포 버전**: https://173b56f3.gatchi-gayo.pages.dev
-- 
 
 ## 데이터 아키텍처
 
