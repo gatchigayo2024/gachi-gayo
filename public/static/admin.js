@@ -422,21 +422,210 @@ async function unblockUser(userId) {
 }
 
 // ============================================
-// 특가할인 관리 페이지 (TODO)
+// 특가할인 관리 페이지
 // ============================================
 
-function renderDealsPage() {
-  alert('특가할인 관리 페이지는 아직 구현 중입니다.')
-  renderDashboard()
+async function renderDealsPage() {
+  ADMIN_STATE.currentPage = 'deals'
+  
+  document.getElementById('app').innerHTML = `
+    <div class="min-h-screen bg-gray-100">
+      <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+          <h1 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-tag mr-2"></i>특가할인 관리
+          </h1>
+        </div>
+      </header>
+      
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-4">
+          <button onclick="renderDashboard()" class="text-blue-600 hover:text-blue-700">
+            <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
+          </button>
+          <button onclick="showCreateDealModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+            <i class="fas fa-plus mr-2"></i>새 특가할인 추가
+          </button>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div id="deals-list">
+            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  
+  loadDeals()
+}
+
+async function loadDeals() {
+  try {
+    const res = await fetch('/api/deals')
+    const data = await res.json()
+    
+    if (data.success) {
+      const html = `
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ${data.deals.map(deal => `
+            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
+              <img src="${JSON.parse(deal.images)[0]}" alt="${deal.title}" class="w-full h-48 object-cover rounded-lg mb-3">
+              <h3 class="font-bold text-lg mb-2">${deal.title}</h3>
+              ${deal.subtitle ? `<p class="text-gray-600 text-sm mb-2">${deal.subtitle}</p>` : ''}
+              <p class="text-gray-500 text-sm mb-3 line-clamp-2">${deal.content}</p>
+              <div class="flex gap-2">
+                <button onclick="showEditDealModal(${deal.id})" class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded text-sm">
+                  <i class="fas fa-edit mr-1"></i>수정
+                </button>
+                <button onclick="deleteDeal(${deal.id})" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                  <i class="fas fa-trash mr-1"></i>삭제
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `
+      
+      document.getElementById('deals-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">특가할인이 없습니다</div>'
+    }
+  } catch (error) {
+    console.error('특가할인 목록 로딩 오류:', error)
+  }
+}
+
+function showCreateDealModal() {
+  alert('특가할인 추가 기능은 간단한 폼으로 구현할 수 있습니다.\n이미지 URL, 제목, 내용, 장소 등을 입력받는 폼이 필요합니다.')
+}
+
+function showEditDealModal(dealId) {
+  alert(`특가할인 ID ${dealId} 수정 기능 구현 필요`)
+}
+
+async function deleteDeal(dealId) {
+  if (confirm('이 특가할인을 삭제하시겠습니까?')) {
+    try {
+      const res = await fetch(`/api/admin/deals/${dealId}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        alert('✅ 특가할인이 삭제되었습니다.')
+        loadDeals()
+      } else {
+        alert('❌ ' + data.error)
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error)
+      alert('삭제 중 오류가 발생했습니다.')
+    }
+  }
 }
 
 // ============================================
-// 같이가요 관리 페이지 (TODO)
+// 같이가요 관리 페이지
 // ============================================
 
-function renderGatheringsPage() {
-  alert('같이가요 관리 페이지는 아직 구현 중입니다.')
-  renderDashboard()
+async function renderGatheringsPage() {
+  ADMIN_STATE.currentPage = 'gatherings'
+  
+  document.getElementById('app').innerHTML = `
+    <div class="min-h-screen bg-gray-100">
+      <header class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+          <h1 class="text-2xl font-bold text-gray-800">
+            <i class="fas fa-calendar mr-2"></i>같이가요 관리
+          </h1>
+        </div>
+      </header>
+      
+      <div class="max-w-7xl mx-auto px-4 py-8">
+        <button onclick="renderDashboard()" class="mb-4 text-blue-600 hover:text-blue-700">
+          <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
+        </button>
+        
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div id="gatherings-list">
+            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  
+  loadGatherings()
+}
+
+async function loadGatherings() {
+  try {
+    const res = await fetch('/api/gatherings')
+    const data = await res.json()
+    
+    if (data.success) {
+      const html = `
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left p-3">ID</th>
+              <th class="text-left p-3">제목</th>
+              <th class="text-left p-3">작성자</th>
+              <th class="text-left p-3">장소</th>
+              <th class="text-left p-3">날짜/시간</th>
+              <th class="text-left p-3">인원</th>
+              <th class="text-left p-3">작성일</th>
+              <th class="text-left p-3">관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.gatherings.map(g => `
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3">${g.id}</td>
+                <td class="p-3">${g.title}</td>
+                <td class="p-3">${g.user_name}</td>
+                <td class="p-3">${g.place_name}</td>
+                <td class="p-3">${g.date_text} ${g.time_text}</td>
+                <td class="p-3">${g.current_people}/${g.max_people}</td>
+                <td class="p-3">${new Date(g.created_at).toLocaleDateString('ko-KR')}</td>
+                <td class="p-3">
+                  <button onclick="deleteGathering(${g.id})" class="text-red-600 hover:text-red-700">
+                    <i class="fas fa-trash mr-1"></i>삭제
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `
+      
+      document.getElementById('gatherings-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">같이가요 포스팅이 없습니다</div>'
+    }
+  } catch (error) {
+    console.error('같이가요 목록 로딩 오류:', error)
+  }
+}
+
+async function deleteGathering(gatheringId) {
+  if (confirm('이 같이가요 포스팅을 삭제하시겠습니까?')) {
+    try {
+      const res = await fetch(`/api/admin/gatherings/${gatheringId}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        alert('✅ 같이가요 포스팅이 삭제되었습니다.')
+        loadGatherings()
+      } else {
+        alert('❌ ' + data.error)
+      }
+    } catch (error) {
+      console.error('삭제 오류:', error)
+      alert('삭제 중 오류가 발생했습니다.')
+    }
+  }
 }
 
 // ============================================

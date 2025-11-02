@@ -1420,6 +1420,135 @@ app.delete('/api/admin/users/:id/unblock', async (c) => {
   }
 })
 
+// 특가할인 관리 API
+// 특가할인 생성
+app.post('/api/admin/deals', async (c) => {
+  try {
+    const data = await c.req.json()
+    
+    const result = await c.env.DB.prepare(`
+      INSERT INTO special_deals 
+      (title, subtitle, content, images, place_name, place_address, place_lat, place_lng)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      data.title,
+      data.subtitle || '',
+      data.content,
+      data.images, // JSON string
+      data.place_name,
+      data.place_address,
+      data.place_lat || null,
+      data.place_lng || null
+    ).run()
+    
+    const newDeal = await c.env.DB.prepare(
+      'SELECT * FROM special_deals WHERE id = ?'
+    ).bind(result.meta.last_row_id).first()
+    
+    return c.json({ success: true, deal: newDeal })
+  } catch (error) {
+    console.error('Create deal error:', error)
+    return c.json({ success: false, error: 'Failed to create deal' }, 500)
+  }
+})
+
+// 특가할인 수정
+app.put('/api/admin/deals/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const data = await c.req.json()
+    
+    await c.env.DB.prepare(`
+      UPDATE special_deals 
+      SET title = ?, subtitle = ?, content = ?, images = ?, 
+          place_name = ?, place_address = ?, place_lat = ?, place_lng = ?
+      WHERE id = ?
+    `).bind(
+      data.title,
+      data.subtitle || '',
+      data.content,
+      data.images,
+      data.place_name,
+      data.place_address,
+      data.place_lat || null,
+      data.place_lng || null,
+      id
+    ).run()
+    
+    const updated = await c.env.DB.prepare(
+      'SELECT * FROM special_deals WHERE id = ?'
+    ).bind(id).first()
+    
+    return c.json({ success: true, deal: updated })
+  } catch (error) {
+    console.error('Update deal error:', error)
+    return c.json({ success: false, error: 'Failed to update deal' }, 500)
+  }
+})
+
+// 특가할인 삭제
+app.delete('/api/admin/deals/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    await c.env.DB.prepare('DELETE FROM special_deals WHERE id = ?').bind(id).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Delete deal error:', error)
+    return c.json({ success: false, error: 'Failed to delete deal' }, 500)
+  }
+})
+
+// 같이가요 관리 API
+// 같이가요 수정
+app.put('/api/admin/gatherings/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const data = await c.req.json()
+    
+    await c.env.DB.prepare(`
+      UPDATE gatherings 
+      SET title = ?, content = ?, date_text = ?, time_text = ?, 
+          place_name = ?, place_address = ?, max_people = ?, question = ?
+      WHERE id = ?
+    `).bind(
+      data.title,
+      data.content,
+      data.date_text,
+      data.time_text,
+      data.place_name,
+      data.place_address,
+      data.max_people,
+      data.question || '',
+      id
+    ).run()
+    
+    const updated = await c.env.DB.prepare(
+      'SELECT * FROM gatherings WHERE id = ?'
+    ).bind(id).first()
+    
+    return c.json({ success: true, gathering: updated })
+  } catch (error) {
+    console.error('Update gathering error:', error)
+    return c.json({ success: false, error: 'Failed to update gathering' }, 500)
+  }
+})
+
+// 같이가요 삭제
+app.delete('/api/admin/gatherings/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    
+    await c.env.DB.prepare('DELETE FROM gatherings WHERE id = ?').bind(id).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Delete gathering error:', error)
+    return c.json({ success: false, error: 'Failed to delete gathering' }, 500)
+  }
+})
+
 // 동행 신청 목록 조회 (관리자용 - 전화번호 포함)
 app.get('/api/admin/applications', async (c) => {
   try {
