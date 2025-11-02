@@ -498,8 +498,155 @@ function showCreateDealModal() {
   alert('특가할인 추가 기능은 간단한 폼으로 구현할 수 있습니다.\n이미지 URL, 제목, 내용, 장소 등을 입력받는 폼이 필요합니다.')
 }
 
-function showEditDealModal(dealId) {
-  alert(`특가할인 ID ${dealId} 수정 기능 구현 필요`)
+async function showEditDealModal(dealId) {
+  try {
+    // 특가할인 정보 조회
+    const res = await fetch(`/api/deals/${dealId}`)
+    const data = await res.json()
+    
+    if (!data.success) {
+      alert('특가할인 정보를 불러올 수 없습니다.')
+      return
+    }
+    
+    const deal = data.deal
+    const images = JSON.parse(deal.images)
+    
+    // 모달 생성
+    const modal = document.createElement('div')
+    modal.id = 'edit-deal-modal'
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">특가할인 수정</h2>
+            <button onclick="closeEditDealModal()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-2xl"></i>
+            </button>
+          </div>
+          
+          <form onsubmit="submitEditDeal(event, ${dealId})" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">제목</label>
+              <input type="text" id="edit-deal-title" value="${deal.title.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">부제목</label>
+              <input type="text" id="edit-deal-subtitle" value="${(deal.subtitle || '').replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">내용</label>
+              <textarea id="edit-deal-content" rows="6" 
+                        class="w-full px-3 py-2 border rounded-lg" required>${deal.content}</textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">이미지 URL (각 줄마다 하나씩)</label>
+              <textarea id="edit-deal-images" rows="3" 
+                        class="w-full px-3 py-2 border rounded-lg" required>${images.join('\n')}</textarea>
+              <p class="text-xs text-gray-500 mt-1">각 이미지 URL을 한 줄씩 입력하세요</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">장소명</label>
+              <input type="text" id="edit-deal-place-name" value="${deal.place_name.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">주소</label>
+              <input type="text" id="edit-deal-place-address" value="${deal.place_address.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">위도</label>
+                <input type="number" step="any" id="edit-deal-place-lat" value="${deal.place_lat || ''}" 
+                       class="w-full px-3 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">경도</label>
+                <input type="number" step="any" id="edit-deal-place-lng" value="${deal.place_lng || ''}" 
+                       class="w-full px-3 py-2 border rounded-lg">
+              </div>
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+                <i class="fas fa-save mr-2"></i>저장
+              </button>
+              <button type="button" onclick="closeEditDealModal()" 
+                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+                취소
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `
+    
+    document.body.appendChild(modal)
+  } catch (error) {
+    console.error('수정 모달 오류:', error)
+    alert('오류가 발생했습니다.')
+  }
+}
+
+function closeEditDealModal() {
+  const modal = document.getElementById('edit-deal-modal')
+  if (modal) modal.remove()
+}
+
+async function submitEditDeal(event, dealId) {
+  event.preventDefault()
+  
+  const title = document.getElementById('edit-deal-title').value
+  const subtitle = document.getElementById('edit-deal-subtitle').value
+  const content = document.getElementById('edit-deal-content').value
+  const imagesText = document.getElementById('edit-deal-images').value
+  const place_name = document.getElementById('edit-deal-place-name').value
+  const place_address = document.getElementById('edit-deal-place-address').value
+  const place_lat = document.getElementById('edit-deal-place-lat').value
+  const place_lng = document.getElementById('edit-deal-place-lng').value
+  
+  // 이미지 URL 배열로 변환
+  const images = imagesText.split('\n').filter(url => url.trim()).map(url => url.trim())
+  
+  try {
+    const res = await fetch(`/api/admin/deals/${dealId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        subtitle,
+        content,
+        images: JSON.stringify(images),
+        place_name,
+        place_address,
+        place_lat: place_lat ? parseFloat(place_lat) : null,
+        place_lng: place_lng ? parseFloat(place_lng) : null
+      })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      alert('✅ 특가할인이 수정되었습니다.')
+      closeEditDealModal()
+      loadDeals()
+    } else {
+      alert('❌ ' + data.error)
+    }
+  } catch (error) {
+    console.error('수정 오류:', error)
+    alert('수정 중 오류가 발생했습니다.')
+  }
 }
 
 async function deleteDeal(dealId) {
@@ -589,6 +736,9 @@ async function loadGatherings() {
                 <td class="p-3">${g.current_people}/${g.max_people}</td>
                 <td class="p-3">${new Date(g.created_at).toLocaleDateString('ko-KR')}</td>
                 <td class="p-3">
+                  <button onclick="showEditGatheringModal(${g.id})" class="text-blue-600 hover:text-blue-700 mr-3">
+                    <i class="fas fa-edit mr-1"></i>수정
+                  </button>
                   <button onclick="deleteGathering(${g.id})" class="text-red-600 hover:text-red-700">
                     <i class="fas fa-trash mr-1"></i>삭제
                   </button>
@@ -603,6 +753,152 @@ async function loadGatherings() {
     }
   } catch (error) {
     console.error('같이가요 목록 로딩 오류:', error)
+  }
+}
+
+async function showEditGatheringModal(gatheringId) {
+  try {
+    // 같이가요 정보 조회
+    const res = await fetch(`/api/gatherings/${gatheringId}`)
+    const data = await res.json()
+    
+    if (!data.success) {
+      alert('같이가요 정보를 불러올 수 없습니다.')
+      return
+    }
+    
+    const g = data.gathering
+    
+    // 모달 생성
+    const modal = document.createElement('div')
+    modal.id = 'edit-gathering-modal'
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">같이가요 수정</h2>
+            <button onclick="closeEditGatheringModal()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-2xl"></i>
+            </button>
+          </div>
+          
+          <form onsubmit="submitEditGathering(event, ${gatheringId})" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">제목</label>
+              <input type="text" id="edit-gathering-title" value="${g.title.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">내용</label>
+              <textarea id="edit-gathering-content" rows="4" 
+                        class="w-full px-3 py-2 border rounded-lg" required>${g.content}</textarea>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">날짜</label>
+                <input type="text" id="edit-gathering-date" value="${g.date_text.replace(/"/g, '&quot;')}" 
+                       class="w-full px-3 py-2 border rounded-lg" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">시간</label>
+                <input type="text" id="edit-gathering-time" value="${g.time_text.replace(/"/g, '&quot;')}" 
+                       class="w-full px-3 py-2 border rounded-lg" required>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">장소명</label>
+              <input type="text" id="edit-gathering-place-name" value="${g.place_name.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">주소</label>
+              <input type="text" id="edit-gathering-place-address" value="${g.place_address.replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">최대 인원</label>
+              <input type="number" id="edit-gathering-max-people" value="${g.max_people}" 
+                     class="w-full px-3 py-2 border rounded-lg" min="2" required>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium mb-1">질문</label>
+              <input type="text" id="edit-gathering-question" value="${(g.question || '').replace(/"/g, '&quot;')}" 
+                     class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+                <i class="fas fa-save mr-2"></i>저장
+              </button>
+              <button type="button" onclick="closeEditGatheringModal()" 
+                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+                취소
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `
+    
+    document.body.appendChild(modal)
+  } catch (error) {
+    console.error('수정 모달 오류:', error)
+    alert('오류가 발생했습니다.')
+  }
+}
+
+function closeEditGatheringModal() {
+  const modal = document.getElementById('edit-gathering-modal')
+  if (modal) modal.remove()
+}
+
+async function submitEditGathering(event, gatheringId) {
+  event.preventDefault()
+  
+  const title = document.getElementById('edit-gathering-title').value
+  const content = document.getElementById('edit-gathering-content').value
+  const date_text = document.getElementById('edit-gathering-date').value
+  const time_text = document.getElementById('edit-gathering-time').value
+  const place_name = document.getElementById('edit-gathering-place-name').value
+  const place_address = document.getElementById('edit-gathering-place-address').value
+  const max_people = parseInt(document.getElementById('edit-gathering-max-people').value)
+  const question = document.getElementById('edit-gathering-question').value
+  
+  try {
+    const res = await fetch(`/api/admin/gatherings/${gatheringId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        content,
+        date_text,
+        time_text,
+        place_name,
+        place_address,
+        max_people,
+        question
+      })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      alert('✅ 같이가요 포스팅이 수정되었습니다.')
+      closeEditGatheringModal()
+      loadGatherings()
+    } else {
+      alert('❌ ' + data.error)
+    }
+  } catch (error) {
+    console.error('수정 오류:', error)
+    alert('수정 중 오류가 발생했습니다.')
   }
 }
 
