@@ -1158,8 +1158,8 @@ function renderDealDetailPanel() {
               ` : ''}
             </div>
             
-            <h1 class="text-2xl font-bold mb-2">${deal.title}</h1>
-            ${deal.subtitle ? `<p class="text-lg text-gray-700 mb-4">${deal.subtitle}</p>` : ''}
+            ${deal.subtitle ? `<h1 class="text-3xl font-bold mb-2">${deal.subtitle}</h1>` : ''}
+            <p class="text-lg text-gray-600 mb-4">${deal.title}</p>
             
             <div class="prose max-w-none mb-6">
               ${deal.content.split('\n').map(line => `<p class="mb-2">${line}</p>`).join('')}
