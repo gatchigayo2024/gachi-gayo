@@ -11,6 +11,32 @@ app.use('/api/*', cors())
 // 정적 파일 서빙
 app.use('/static/*', serveStatic({ root: './public' }))
 
+// 관리자 페이지 라우트
+app.get('/admin', (c) => {
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>같이가요 관리자</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <style>
+            * {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <div id="app"></div>
+        
+        <script src="/static/admin.js"></script>
+    </body>
+    </html>
+  `)
+})
+
 // ============================================
 // API 라우트
 // ============================================
@@ -256,6 +282,13 @@ app.post('/api/auth/phone-login', async (c) => {
       'SELECT * FROM users WHERE id = ?'
     ).bind(result.meta.last_row_id).first()
 
+    // 📧 관리자에게 회원가입 알림 발송
+    await sendEmailNotification('signup', {
+      name: newUser.name,
+      phone: newUser.phone,
+      created_at: newUser.created_at
+    }, c.env)
+
     return c.json({ success: true, user: newUser, isNewUser: true })
   } catch (error) {
     console.error('Phone login error:', error)
@@ -266,6 +299,79 @@ app.post('/api/auth/phone-login', async (c) => {
       error: '로그인 중 오류가 발생했습니다.',
       details: error.message // 개발용
     }, 500)
+  }
+})
+
+// ============================================
+// 관리자 인증 API
+// ============================================
+
+// 관리자 로그인
+app.post('/api/admin/login', async (c) => {
+  try {
+    const { phone, password } = await c.req.json()
+    
+    if (!phone || !password) {
+      return c.json({ success: false, error: '전화번호와 비밀번호를 입력해주세요.' }, 400)
+    }
+    
+    // 관리자 계정 조회
+    const admin = await c.env.DB.prepare(
+      'SELECT * FROM admins WHERE phone = ? AND is_active = 1'
+    ).bind(phone).first()
+    
+    if (!admin) {
+      return c.json({ success: false, error: '관리자 계정을 찾을 수 없습니다.' }, 401)
+    }
+    
+    // 비밀번호 검증 (실제로는 해시 비교해야 하지만, 간단히 평문 비교)
+    // TODO: bcrypt 등으로 비밀번호 해싱 구현
+    if (admin.password !== password) {
+      return c.json({ success: false, error: '비밀번호가 올바르지 않습니다.' }, 401)
+    }
+    
+    // 세션 토큰 생성 (간단히 admin ID + timestamp 조합)
+    const sessionToken = `${admin.id}_${Date.now()}_${Math.random().toString(36)}`
+    
+    // 비밀번호 제외하고 반환
+    const { password: _, ...adminData } = admin
+    
+    return c.json({ 
+      success: true, 
+      admin: adminData,
+      sessionToken
+    })
+  } catch (error) {
+    console.error('Admin login error:', error)
+    return c.json({ success: false, error: '로그인 중 오류가 발생했습니다.' }, 500)
+  }
+})
+
+// 관리자 세션 확인
+app.post('/api/admin/check-session', async (c) => {
+  try {
+    const { sessionToken } = await c.req.json()
+    
+    if (!sessionToken) {
+      return c.json({ success: false, error: '세션 토큰이 필요합니다.' }, 401)
+    }
+    
+    // 세션 토큰에서 admin ID 추출
+    const adminId = sessionToken.split('_')[0]
+    
+    // 관리자 정보 조회
+    const admin = await c.env.DB.prepare(
+      'SELECT id, phone, name, email, is_active FROM admins WHERE id = ? AND is_active = 1'
+    ).bind(adminId).first()
+    
+    if (!admin) {
+      return c.json({ success: false, error: '유효하지 않은 세션입니다.' }, 401)
+    }
+    
+    return c.json({ success: true, admin })
+  } catch (error) {
+    console.error('Admin session check error:', error)
+    return c.json({ success: false, error: '세션 확인 중 오류가 발생했습니다.' }, 500)
   }
 })
 
@@ -372,6 +478,58 @@ app.post('/api/deals/:id/like', async (c) => {
     }
   } catch (error) {
     return c.json({ success: false, error: 'Failed to toggle like' }, 500)
+  }
+})
+
+// 지인들과 같이가기 신청
+app.post('/api/deals/:id/group-chat-request', async (c) => {
+  try {
+    const dealId = c.req.param('id')
+    const { user_id } = await c.req.json()
+    
+    if (!user_id || !dealId) {
+      return c.json({ success: false, error: 'User ID and Deal ID required' }, 400)
+    }
+    
+    // 중복 신청 확인
+    const existing = await c.env.DB.prepare(
+      'SELECT * FROM group_chat_requests WHERE user_id = ? AND deal_id = ?'
+    ).bind(user_id, dealId).first()
+    
+    if (existing) {
+      return c.json({ success: false, error: 'Already requested' }, 400)
+    }
+    
+    // 신청 생성
+    await c.env.DB.prepare(
+      'INSERT INTO group_chat_requests (user_id, deal_id, status) VALUES (?, ?, ?)'
+    ).bind(user_id, dealId, 'pending').run()
+    
+    // 신청자 및 특가할인 정보 조회
+    const requestInfo = await c.env.DB.prepare(`
+      SELECT 
+        u.name as user_name,
+        u.phone as user_phone,
+        d.title as deal_title
+      FROM users u
+      JOIN special_deals d ON d.id = ?
+      WHERE u.id = ?
+    `).bind(dealId, user_id).first()
+    
+    // 📧 관리자에게 지인들과 같이가기 신청 알림 발송
+    if (requestInfo) {
+      await sendEmailNotification('group_chat_request', {
+        user_name: requestInfo.user_name,
+        user_phone: requestInfo.user_phone,
+        deal_title: requestInfo.deal_title,
+        created_at: new Date().toISOString()
+      }, c.env)
+    }
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('❌ 지인들과 같이가기 신청 오류:', error)
+    return c.json({ success: false, error: 'Failed to create group chat request' }, 500)
   }
 })
 
@@ -568,7 +726,23 @@ app.post('/api/gatherings', async (c) => {
       'SELECT * FROM gatherings WHERE id = ?'
     ).bind(result.meta.last_row_id).first()
 
-    // TODO: 관리자에게 이메일 알림
+    // 작성자 정보 조회
+    const author = await c.env.DB.prepare(
+      'SELECT name, phone FROM users WHERE id = ?'
+    ).bind(newGathering.user_id).first()
+
+    // 📧 관리자에게 같이가요 작성 알림 발송
+    if (author) {
+      await sendEmailNotification('gathering_created', {
+        user_name: author.name,
+        user_phone: author.phone,
+        title: newGathering.title,
+        place_name: newGathering.place_name,
+        date_text: newGathering.date_text,
+        time_text: newGathering.time_text,
+        created_at: newGathering.created_at
+      }, c.env)
+    }
     
     return c.json({ success: true, gathering: newGathering })
   } catch (error) {
@@ -686,7 +860,33 @@ app.post('/api/gatherings/:id/apply', async (c) => {
       'INSERT INTO gathering_applications (gathering_id, user_id, answer) VALUES (?, ?, ?)'
     ).bind(gatheringId, user_id, answer || '').run()
 
-    // TODO: 관리자에게 이메일 알림
+    // 신청자 및 포스팅 정보 조회
+    const applicantInfo = await c.env.DB.prepare(`
+      SELECT 
+        u.name as applicant_name,
+        u.phone as applicant_phone,
+        g.title as gathering_title,
+        g.user_id as author_id,
+        author.name as author_name,
+        author.phone as author_phone
+      FROM users u
+      JOIN gatherings g ON g.id = ?
+      JOIN users author ON author.id = g.user_id
+      WHERE u.id = ?
+    `).bind(gatheringId, user_id).first()
+
+    // 📧 관리자에게 동행 신청 알림 발송
+    if (applicantInfo) {
+      await sendEmailNotification('gathering_application', {
+        applicant_name: applicantInfo.applicant_name,
+        applicant_phone: applicantInfo.applicant_phone,
+        gathering_title: applicantInfo.gathering_title,
+        author_name: applicantInfo.author_name,
+        author_phone: applicantInfo.author_phone,
+        answer: answer || '',
+        created_at: new Date().toISOString()
+      }, c.env)
+    }
     
     return c.json({ success: true })
   } catch (error) {
@@ -1080,5 +1280,268 @@ https://gachi-gayo.pages.dev
     return c.json({ success: false, error: 'Failed to send notification' }, 500)
   }
 })
+
+// ============================================
+// 관리자 대시보드 API
+// ============================================
+
+// 대시보드 통계
+app.get('/api/admin/stats', async (c) => {
+  try {
+    // 사용자 수
+    const userCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM users'
+    ).first()
+    
+    // 특가할인 수
+    const dealCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM special_deals'
+    ).first()
+    
+    // 같이가요 포스팅 수
+    const gatheringCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM gatherings'
+    ).first()
+    
+    // 동행 신청 수
+    const applicationCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM gathering_applications'
+    ).first()
+    
+    // 지인 신청 수
+    const groupRequestCount = await c.env.DB.prepare(
+      'SELECT COUNT(*) as count FROM group_chat_requests'
+    ).first()
+    
+    // 최근 활동 (최근 10개)
+    const recentActivities = await c.env.DB.prepare(`
+      SELECT 
+        'gathering' as type,
+        g.id,
+        g.title,
+        g.created_at,
+        u.name as user_name
+      FROM gatherings g
+      JOIN users u ON g.user_id = u.id
+      ORDER BY g.created_at DESC
+      LIMIT 10
+    `).all()
+    
+    return c.json({
+      success: true,
+      stats: {
+        users: userCount?.count || 0,
+        deals: dealCount?.count || 0,
+        gatherings: gatheringCount?.count || 0,
+        applications: applicationCount?.count || 0,
+        groupRequests: groupRequestCount?.count || 0
+      },
+      recentActivities: recentActivities.results
+    })
+  } catch (error) {
+    console.error('Admin stats error:', error)
+    return c.json({ success: false, error: 'Failed to fetch stats' }, 500)
+  }
+})
+
+// 사용자 목록 조회
+app.get('/api/admin/users', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        u.*,
+        (SELECT COUNT(*) FROM gatherings WHERE user_id = u.id) as gathering_count,
+        (SELECT COUNT(*) FROM gathering_applications WHERE user_id = u.id) as application_count,
+        b.id as blocked_id,
+        b.reason as block_reason
+      FROM users u
+      LEFT JOIN blocked_users b ON u.id = b.user_id
+      ORDER BY u.created_at DESC
+    `).all()
+    
+    return c.json({ success: true, users: results })
+  } catch (error) {
+    console.error('Admin users error:', error)
+    return c.json({ success: false, error: 'Failed to fetch users' }, 500)
+  }
+})
+
+// 사용자 차단
+app.post('/api/admin/users/:id/block', async (c) => {
+  try {
+    const userId = c.req.param('id')
+    const { admin_id, reason } = await c.req.json()
+    
+    // 이미 차단되었는지 확인
+    const existing = await c.env.DB.prepare(
+      'SELECT * FROM blocked_users WHERE user_id = ?'
+    ).bind(userId).first()
+    
+    if (existing) {
+      return c.json({ success: false, error: '이미 차단된 사용자입니다.' }, 400)
+    }
+    
+    await c.env.DB.prepare(
+      'INSERT INTO blocked_users (user_id, admin_id, reason) VALUES (?, ?, ?)'
+    ).bind(userId, admin_id, reason || '').run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Block user error:', error)
+    return c.json({ success: false, error: 'Failed to block user' }, 500)
+  }
+})
+
+// 사용자 차단 해제
+app.delete('/api/admin/users/:id/unblock', async (c) => {
+  try {
+    const userId = c.req.param('id')
+    
+    await c.env.DB.prepare(
+      'DELETE FROM blocked_users WHERE user_id = ?'
+    ).bind(userId).run()
+    
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Unblock user error:', error)
+    return c.json({ success: false, error: 'Failed to unblock user' }, 500)
+  }
+})
+
+// 동행 신청 목록 조회 (관리자용 - 전화번호 포함)
+app.get('/api/admin/applications', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        ga.*,
+        g.title as gathering_title,
+        g.place_name,
+        g.date_text,
+        g.time_text,
+        applicant.name as applicant_name,
+        applicant.phone as applicant_phone,
+        author.name as author_name,
+        author.phone as author_phone
+      FROM gathering_applications ga
+      JOIN gatherings g ON ga.gathering_id = g.id
+      JOIN users applicant ON ga.user_id = applicant.id
+      JOIN users author ON g.user_id = author.id
+      ORDER BY ga.created_at DESC
+    `).all()
+    
+    return c.json({ success: true, applications: results })
+  } catch (error) {
+    console.error('Admin applications error:', error)
+    return c.json({ success: false, error: 'Failed to fetch applications' }, 500)
+  }
+})
+
+// 지인 신청 목록 조회 (관리자용 - 전화번호 포함)
+app.get('/api/admin/group-requests', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(`
+      SELECT 
+        gr.*,
+        u.name as user_name,
+        u.phone as user_phone,
+        d.title as deal_title,
+        d.place_name
+      FROM group_chat_requests gr
+      JOIN users u ON gr.user_id = u.id
+      JOIN special_deals d ON gr.deal_id = d.id
+      ORDER BY gr.created_at DESC
+    `).all()
+    
+    return c.json({ success: true, requests: results })
+  } catch (error) {
+    console.error('Admin group requests error:', error)
+    return c.json({ success: false, error: 'Failed to fetch group requests' }, 500)
+  }
+})
+
+// ============================================
+// 이메일 알림 함수
+// ============================================
+
+async function sendEmailNotification(type: string, data: any, env: any) {
+  try {
+    const RESEND_API_KEY = env.RESEND_API_KEY || 're_TBVnupir_DGdB7P9GgffTR9aKDQRWNhPe'
+    const ADMIN_EMAIL = env.ADMIN_EMAIL || 'contact@gatchigayo.com'
+    
+    let subject = ''
+    let html = ''
+    
+    switch(type) {
+      case 'signup':
+        subject = '🎉 새로운 회원가입'
+        html = `
+          <h2>새로운 회원이 가입했습니다</h2>
+          <p><strong>이름:</strong> ${data.name}</p>
+          <p><strong>전화번호:</strong> ${data.phone}</p>
+          <p><strong>가입일시:</strong> ${data.created_at}</p>
+        `
+        break
+        
+      case 'gathering_created':
+        subject = '📝 새로운 같이가요 포스팅'
+        html = `
+          <h2>새로운 같이가요 포스팅이 작성되었습니다</h2>
+          <p><strong>작성자:</strong> ${data.user_name} (${data.user_phone})</p>
+          <p><strong>제목:</strong> ${data.title}</p>
+          <p><strong>장소:</strong> ${data.place_name}</p>
+          <p><strong>날짜:</strong> ${data.date_text} ${data.time_text}</p>
+          <p><strong>작성일시:</strong> ${data.created_at}</p>
+        `
+        break
+        
+      case 'gathering_application':
+        subject = '👥 새로운 동행 신청'
+        html = `
+          <h2>새로운 동행 신청이 발생했습니다</h2>
+          <p><strong>신청자:</strong> ${data.applicant_name} (${data.applicant_phone})</p>
+          <p><strong>포스팅 제목:</strong> ${data.gathering_title}</p>
+          <p><strong>작성자:</strong> ${data.author_name} (${data.author_phone})</p>
+          <p><strong>신청 답변:</strong> ${data.answer || '없음'}</p>
+          <p><strong>신청일시:</strong> ${data.created_at}</p>
+        `
+        break
+        
+      case 'group_chat_request':
+        subject = '🎪 지인들과 같이가기 신청'
+        html = `
+          <h2>지인들과 같이가기 신청이 발생했습니다</h2>
+          <p><strong>신청자:</strong> ${data.user_name} (${data.user_phone})</p>
+          <p><strong>특가할인:</strong> ${data.deal_title}</p>
+          <p><strong>신청일시:</strong> ${data.created_at}</p>
+        `
+        break
+    }
+    
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Gatchi-Gayo <onboarding@resend.dev>',
+        to: [ADMIN_EMAIL],
+        subject: subject,
+        html: html
+      })
+    })
+    
+    if (!response.ok) {
+      console.error('이메일 전송 실패:', await response.text())
+      return false
+    }
+    
+    console.log('✅ 관리자 이메일 전송 성공:', type)
+    return true
+  } catch (error) {
+    console.error('❌ 이메일 전송 오류:', error)
+    return false
+  }
+}
 
 export default app

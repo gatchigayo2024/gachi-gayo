@@ -1208,7 +1208,7 @@ function renderDealDetailPanel() {
               <button type="button" onclick="event.stopPropagation(); shareDeal(${deal.id})" class="w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-share"></i> 지인에게 공유하기
               </button>
-              <button type="button" onclick="requestGroupChatForDeal()" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
+              <button type="button" onclick="requestGroupChatForDeal(${deal.id})" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-medium py-3 rounded-lg">
                 <i class="fas fa-users"></i> 지인들과 같이가기
               </button>
             </div>
@@ -1264,16 +1264,33 @@ function closeDealDetail() {
 }
 
 // 지인들과 같이가기
-function requestGroupChatForDeal() {
-  if (!requireLogin(() => requestGroupChatForDeal())) return
+async function requestGroupChatForDeal(dealId) {
+  if (!requireLogin(() => requestGroupChatForDeal(dealId))) return
   
-  showSuccessModal(
-    '지인들과의 같이가요 채팅방 생성을 신청하시겠습니까?<br>관리자가 확인 후 문자로 안내해드립니다.',
-    () => {
-      // TODO: 관리자에게 알림 발송
-      console.log('지인들과 같이가기 신청 완료')
+  const confirmed = confirm('지인들과의 같이가요 채팅방 생성을 신청하시겠습니까?\n관리자가 확인 후 문자로 안내해드립니다.')
+  
+  if (confirmed) {
+    try {
+      const res = await fetch(`/api/deals/${dealId}/group-chat-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        alert('✅ 신청이 완료되었습니다!\n관리자가 확인 후 문자로 안내해드립니다.')
+      } else if (data.error === 'Already requested') {
+        alert('⚠️ 이미 신청하셨습니다.')
+      } else {
+        alert('❌ 신청에 실패했습니다. 다시 시도해주세요.')
+      }
+    } catch (error) {
+      console.error('❌ 지인들과 같이가기 신청 오류:', error)
+      alert('❌ 신청 중 오류가 발생했습니다.')
     }
-  )
+  }
 }
 
 // ============================================
