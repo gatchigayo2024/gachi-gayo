@@ -5,12 +5,14 @@ export type Bindings = {
   NAVER_MAP_CLIENT_SECRET: string;
   NAVER_SEARCH_CLIENT_ID: string;
   NAVER_SEARCH_CLIENT_SECRET: string;
-  ALIGO_API_KEY: string;
-  ALIGO_USER_ID: string;
-  ALIGO_SENDER: string;
+  ALIGO_API_KEY?: string;
+  ALIGO_USER_ID?: string;
+  ALIGO_SENDER?: string;
   NHN_SMS_APP_KEY?: string;
   NHN_SMS_SECRET_KEY?: string;
   NHN_SMS_SENDER?: string;
+  RESEND_API_KEY?: string;
+  ADMIN_EMAIL?: string;
   ENVIRONMENT?: string;
 }
 
