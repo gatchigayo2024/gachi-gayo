@@ -1,5 +1,6 @@
 export type Bindings = {
   DB: D1Database;
+  R2: R2Bucket;
   KAKAO_JAVASCRIPT_KEY: string;
   NAVER_MAP_CLIENT_ID: string;
   NAVER_MAP_CLIENT_SECRET: string;

@@ -624,7 +624,7 @@ async function submitCreateDeal(event) {
       `
       
       try {
-        const url = await uploadImageToImgBB(files[i])
+        const url = await uploadImageToR2(files[i])
         uploadedImages.push(url)
         console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
       } catch (error) {
@@ -830,43 +830,45 @@ function previewUploadedImages() {
   `
 }
 
-async function uploadImageToImgBB(file) {
+async function uploadImageToR2(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     
     reader.onload = async (e) => {
       try {
-        const base64 = e.target.result.split(',')[1]
+        const base64Image = e.target.result
         
         console.log('📤 이미지 업로드 시작:', file.name, '크기:', (file.size / 1024).toFixed(2) + 'KB')
         
-        // ImgBB API 호출
-        const formData = new FormData()
-        formData.append('image', base64)
-        
-        const response = await fetch('https://api.imgbb.com/1/upload?key=46c880e8ef76835f02b13e40650a2c14', {
+        // R2 업로드 API 호출
+        const response = await fetch('/api/admin/upload-image', {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: base64Image
+          })
         })
         
         console.log('📥 응답 상태:', response.status, response.statusText)
         
         if (!response.ok) {
           const errorText = await response.text()
-          console.error('❌ ImgBB 오류 응답:', errorText)
-          reject(new Error(`ImgBB API 오류: ${response.status} - ${errorText}`))
+          console.error('❌ 업로드 오류 응답:', errorText)
+          reject(new Error(`업로드 API 오류: ${response.status} - ${errorText}`))
           return
         }
         
         const data = await response.json()
         console.log('📦 응답 데이터:', data)
         
-        if (data.success && data.data && data.data.url) {
-          console.log('✅ 업로드 성공:', data.data.url)
-          resolve(data.data.url)
+        if (data.success && data.url) {
+          console.log('✅ 업로드 성공:', data.url)
+          resolve(data.url)
         } else {
           console.error('❌ 업로드 실패:', data)
-          reject(new Error(data.error?.message || '업로드 실패'))
+          reject(new Error(data.error || '업로드 실패'))
         }
       } catch (error) {
         console.error('❌ 업로드 중 예외 발생:', error)
@@ -921,7 +923,7 @@ async function submitEditDeal(event, dealId) {
         `
         
         try {
-          const url = await uploadImageToImgBB(files[i])
+          const url = await uploadImageToR2(files[i])
           finalImages.push(url)
           console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
         } catch (error) {

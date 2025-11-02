@@ -1422,6 +1422,43 @@ app.delete('/api/admin/users/:id/unblock', async (c) => {
 
 // 특가할인 관리 API
 // 특가할인 생성
+// 이미지 업로드 API (R2)
+app.post('/api/admin/upload-image', async (c) => {
+  try {
+    const { image } = await c.req.json()
+    
+    if (!image) {
+      return c.json({ success: false, error: 'No image provided' }, 400)
+    }
+    
+    // Base64 디코딩
+    const base64Data = image.replace(/^data:image\/\w+;base64,/, '')
+    const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
+    
+    // 파일명 생성 (타임스탬프 + 랜덤)
+    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`
+    
+    // R2에 업로드
+    await c.env.R2.put(filename, buffer, {
+      httpMetadata: {
+        contentType: 'image/jpeg',
+      },
+    })
+    
+    // 공개 URL 생성 (R2 버킷의 공개 도메인 사용)
+    // 형식: https://pub-[bucket-id].r2.dev/[filename]
+    // 또는 커스텀 도메인 사용 가능
+    const publicUrl = `https://gatchi-gayo-images.r2.dev/${filename}`
+    
+    console.log('✅ 이미지 업로드 성공:', publicUrl)
+    
+    return c.json({ success: true, url: publicUrl })
+  } catch (error) {
+    console.error('❌ 이미지 업로드 오류:', error)
+    return c.json({ success: false, error: 'Failed to upload image' }, 500)
+  }
+})
+
 app.post('/api/admin/deals', async (c) => {
   try {
     const data = await c.req.json()
