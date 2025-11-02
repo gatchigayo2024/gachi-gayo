@@ -543,17 +543,13 @@ app.post('/api/gatherings', async (c) => {
       place_name: data.place_name
     })
     
-    // special_deal_id가 null이면 임시로 1을 사용 (데이터베이스 제약조건 때문)
-    // TODO: 데이터베이스 스키마 업데이트 후 null 허용
-    const specialDealId = data.special_deal_id || 1
-    
     const result = await c.env.DB.prepare(`
       INSERT INTO gatherings 
       (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, place_lat, place_lng, max_people, question)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.user_id,
-      specialDealId,
+      data.special_deal_id || null,
       data.title,
       data.content,
       data.date_text,
