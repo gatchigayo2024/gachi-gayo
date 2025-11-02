@@ -1442,31 +1442,41 @@ app.post('/api/admin/upload-image', async (c) => {
     const CLOUDINARY_API_KEY = c.env.CLOUDINARY_API_KEY || '891333348995983'
     const CLOUDINARY_API_SECRET = c.env.CLOUDINARY_API_SECRET || 'EvGafFux5TxxD5eZsQ2QieO6dMk'
     
-    // Cloudinary Upload API URL (signed upload)
+    // Cloudinary Upload API URL
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
     
-    // Timestamp for signature
-    const timestamp = Math.floor(Date.now() / 1000)
+    // Timestamp
+    const timestamp = Math.floor(Date.now() / 1000).toString()
     
-    // Signature 생성 (Cloudflare Workers Web Crypto API 사용)
-    const signatureString = `timestamp=${timestamp}${CLOUDINARY_API_SECRET}`
+    // Public ID 생성
+    const publicId = filename 
+      ? `gatchi-gayo/${filename.replace(/\.[^/.]+$/, '')}-${timestamp}`
+      : `gatchi-gayo/image-${timestamp}`
+    
+    // Signature 생성을 위한 파라미터 (알파벳순 정렬)
+    const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`
+    
+    // SHA-1 해시 생성
     const encoder = new TextEncoder()
-    const data = encoder.encode(signatureString)
+    const data = encoder.encode(paramsToSign)
     const hashBuffer = await crypto.subtle.digest('SHA-1', data)
     const hashArray = Array.from(new Uint8Array(hashBuffer))
     const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
     
+    console.log('🔐 Cloudinary 인증 정보:')
+    console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME)
+    console.log('API Key:', CLOUDINARY_API_KEY)
+    console.log('Timestamp:', timestamp)
+    console.log('Public ID:', publicId)
+    console.log('Signature:', signature)
+    
     // FormData 생성
     const formData = new FormData()
     formData.append('file', image)
-    formData.append('timestamp', timestamp.toString())
     formData.append('api_key', CLOUDINARY_API_KEY)
+    formData.append('timestamp', timestamp)
+    formData.append('public_id', publicId)
     formData.append('signature', signature)
-    
-    if (filename) {
-      const publicId = `gatchi-gayo/${filename.replace(/\.[^/.]+$/, '')}-${timestamp}`
-      formData.append('public_id', publicId)
-    }
     
     // Cloudinary API 호출
     const response = await fetch(uploadUrl, {
