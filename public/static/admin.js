@@ -838,6 +838,8 @@ async function uploadImageToImgBB(file) {
       try {
         const base64 = e.target.result.split(',')[1]
         
+        console.log('📤 이미지 업로드 시작:', file.name, '크기:', (file.size / 1024).toFixed(2) + 'KB')
+        
         // ImgBB API 호출
         const formData = new FormData()
         formData.append('image', base64)
@@ -847,19 +849,36 @@ async function uploadImageToImgBB(file) {
           body: formData
         })
         
-        const data = await response.json()
+        console.log('📥 응답 상태:', response.status, response.statusText)
         
-        if (data.success) {
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('❌ ImgBB 오류 응답:', errorText)
+          reject(new Error(`ImgBB API 오류: ${response.status} - ${errorText}`))
+          return
+        }
+        
+        const data = await response.json()
+        console.log('📦 응답 데이터:', data)
+        
+        if (data.success && data.data && data.data.url) {
+          console.log('✅ 업로드 성공:', data.data.url)
           resolve(data.data.url)
         } else {
-          reject(new Error('업로드 실패'))
+          console.error('❌ 업로드 실패:', data)
+          reject(new Error(data.error?.message || '업로드 실패'))
         }
       } catch (error) {
+        console.error('❌ 업로드 중 예외 발생:', error)
         reject(error)
       }
     }
     
-    reader.onerror = () => reject(new Error('파일 읽기 실패'))
+    reader.onerror = () => {
+      console.error('❌ 파일 읽기 실패')
+      reject(new Error('파일 읽기 실패'))
+    }
+    
     reader.readAsDataURL(file)
   })
 }
