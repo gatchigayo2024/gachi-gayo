@@ -505,9 +505,8 @@ function initNaverMap(containerId, lat, lng, placeName) {
 function openNaverMap(lat, lng, placeName) {
   console.log('🗺️ 네이버 지도 URL 생성:', { lat, lng, placeName })
   
-  // 네이버 지도 v5 최신 URL 형식
-  // c 파라미터: 경도,위도,줌레벨,틸트,회전,지도타입,트래픽
-  const url = `https://map.naver.com/p?c=${lng},${lat},16,0,0,0,dh&title=${encodeURIComponent(placeName)}`
+  // 네이버 지도 검색 URL 형식 (더 안정적)
+  const url = `https://map.naver.com/v5/search/${encodeURIComponent(placeName)}?c=${lng},${lat},15,0,0,0,dh`
   
   console.log('🔗 생성된 URL:', url)
   window.open(url, '_blank')
