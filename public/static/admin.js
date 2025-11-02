@@ -598,15 +598,22 @@ async function submitCreateDeal(event) {
   const fileInput = document.getElementById('create-deal-image-files')
   const files = fileInput.files
   
+  console.log('🎯 submitCreateDeal 함수 시작')
+  console.log('선택된 파일 개수:', files.length)
+  
   if (files.length === 0) {
     alert('최소 1개 이상의 이미지를 선택하세요.')
     return
   }
   
+  alert(`${files.length}개의 이미지를 업로드합니다. 잠시만 기다려주세요...`)
+  
   try {
     // 이미지 업로드
     const uploadedImages = []
     const progressDiv = document.getElementById('create-deal-upload-progress')
+    
+    console.log('📁 파일 업로드 시작!')
     
     progressDiv.innerHTML = `
       <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
@@ -616,6 +623,8 @@ async function submitCreateDeal(event) {
     `
     
     for (let i = 0; i < files.length; i++) {
+      console.log(`🔄 이미지 ${i + 1}/${files.length} 처리 시작`)
+      
       progressDiv.innerHTML = `
         <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
           <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -629,6 +638,7 @@ async function submitCreateDeal(event) {
         console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
       } catch (error) {
         console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, error)
+        alert(`❌ 이미지 ${i + 1} 업로드 실패: ${error.message}`)
         throw new Error(`이미지 ${i + 1} 업로드 실패: ${error.message}`)
       }
     }
@@ -932,9 +942,15 @@ async function submitEditDeal(event, dealId) {
   const fileInput = document.getElementById('edit-deal-image-files')
   const files = fileInput.files
   
+  console.log('🎯 submitEditDeal 함수 시작')
+  console.log('선택된 파일 개수:', files.length)
+  
   try {
     // 파일 업로드 처리
     if (files.length > 0) {
+      console.log('📁 파일 업로드 시작!')
+      alert(`${files.length}개의 이미지를 업로드합니다. 잠시만 기다려주세요...`)
+      
       const progressDiv = document.getElementById('edit-deal-upload-progress')
       progressDiv.innerHTML = `
         <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
@@ -944,6 +960,8 @@ async function submitEditDeal(event, dealId) {
       `
       
       for (let i = 0; i < files.length; i++) {
+        console.log(`🔄 이미지 ${i + 1}/${files.length} 처리 시작`)
+        
         progressDiv.innerHTML = `
           <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
             <i class="fas fa-spinner fa-spin mr-2"></i>
@@ -957,6 +975,7 @@ async function submitEditDeal(event, dealId) {
           console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
         } catch (error) {
           console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, error)
+          alert(`❌ 이미지 ${i + 1} 업로드 실패: ${error.message}`)
           throw new Error(`이미지 ${i + 1} 업로드 실패: ${error.message}`)
         }
       }
