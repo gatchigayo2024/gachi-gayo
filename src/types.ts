@@ -15,6 +15,9 @@ export type Bindings = {
   RESEND_API_KEY?: string;
   ADMIN_EMAIL?: string;
   IMGBB_API_KEY?: string;
+  CLOUDINARY_CLOUD_NAME?: string;
+  CLOUDINARY_API_KEY?: string;
+  CLOUDINARY_API_SECRET?: string;
   ENVIRONMENT?: string;
 }
 

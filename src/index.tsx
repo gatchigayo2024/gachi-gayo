@@ -1426,7 +1426,7 @@ app.delete('/api/admin/users/:id/unblock', async (c) => {
 
 // 특가할인 관리 API
 // 특가할인 생성
-// 이미지 업로드 API (ImgBB를 통한 업로드)
+// 이미지 업로드 API (Cloudinary를 통한 업로드)
 app.post('/api/admin/upload-image', async (c) => {
   try {
     const { image, filename } = await c.req.json()
@@ -1435,53 +1435,71 @@ app.post('/api/admin/upload-image', async (c) => {
       return c.json({ success: false, error: 'No image provided' }, 400)
     }
     
-    console.log('📤 서버: 이미지 업로드 시작')
+    console.log('📤 서버: Cloudinary 이미지 업로드 시작')
     
-    // Base64 데이터에서 실제 데이터 부분만 추출
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, '')
+    // Cloudinary 설정
+    const CLOUDINARY_CLOUD_NAME = c.env.CLOUDINARY_CLOUD_NAME || 'dqorhlgnv'
+    const CLOUDINARY_API_KEY = c.env.CLOUDINARY_API_KEY || '891333348995983'
+    const CLOUDINARY_API_SECRET = c.env.CLOUDINARY_API_SECRET || 'EvGafFux5TxxD5eZsQ2QieO6dMk'
     
-    // ImgBB API 키 (환경 변수 또는 기본값)
-    const IMGBB_API_KEY = c.env.IMGBB_API_KEY || '46c880e8ef76835f02b13e40650a2c14'
+    // Cloudinary Upload API URL (signed upload)
+    const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
+    
+    // Timestamp for signature
+    const timestamp = Math.floor(Date.now() / 1000)
+    
+    // Signature 생성 (Cloudflare Workers Web Crypto API 사용)
+    const signatureString = `timestamp=${timestamp}${CLOUDINARY_API_SECRET}`
+    const encoder = new TextEncoder()
+    const data = encoder.encode(signatureString)
+    const hashBuffer = await crypto.subtle.digest('SHA-1', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
     
     // FormData 생성
     const formData = new FormData()
-    formData.append('image', base64Data)
+    formData.append('file', image)
+    formData.append('timestamp', timestamp.toString())
+    formData.append('api_key', CLOUDINARY_API_KEY)
+    formData.append('signature', signature)
+    
     if (filename) {
-      formData.append('name', filename.replace(/\.[^/.]+$/, '')) // 확장자 제거
+      const publicId = `gatchi-gayo/${filename.replace(/\.[^/.]+$/, '')}-${timestamp}`
+      formData.append('public_id', publicId)
     }
     
-    // ImgBB API 호출
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+    // Cloudinary API 호출
+    const response = await fetch(uploadUrl, {
       method: 'POST',
       body: formData
     })
     
-    console.log('📥 서버: ImgBB 응답 상태:', response.status)
+    console.log('📥 서버: Cloudinary 응답 상태:', response.status)
     
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ 서버: ImgBB 오류:', errorText)
+      console.error('❌ 서버: Cloudinary 오류:', errorText)
       return c.json({ 
         success: false, 
-        error: `ImgBB API 오류: ${response.status}` 
+        error: `Cloudinary API 오류: ${response.status}` 
       }, 500)
     }
     
     const data = await response.json()
     
-    if (data.success && data.data && data.data.url) {
-      console.log('✅ 서버: 업로드 성공:', data.data.url)
+    if (data.secure_url) {
+      console.log('✅ 서버: 업로드 성공:', data.secure_url)
       return c.json({ 
         success: true, 
-        url: data.data.url,
-        thumbnail: data.data.thumb?.url,
-        display_url: data.data.display_url
+        url: data.secure_url,
+        thumbnail: data.thumbnail_url,
+        public_id: data.public_id
       })
     } else {
-      console.error('❌ 서버: ImgBB 응답 실패:', data)
+      console.error('❌ 서버: Cloudinary 응답 실패:', data)
       return c.json({ 
         success: false, 
-        error: data.error?.message || 'ImgBB 업로드 실패' 
+        error: data.error?.message || 'Cloudinary 업로드 실패' 
       }, 500)
     }
   } catch (error) {
