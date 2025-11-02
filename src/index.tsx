@@ -1437,46 +1437,29 @@ app.post('/api/admin/upload-image', async (c) => {
     
     console.log('📤 서버: Cloudinary 이미지 업로드 시작')
     
-    // Cloudinary 설정
+    // Cloudinary 설정 (Unsigned Upload)
     const CLOUDINARY_CLOUD_NAME = c.env.CLOUDINARY_CLOUD_NAME || 'dbifhfx6l'
-    const CLOUDINARY_API_KEY = c.env.CLOUDINARY_API_KEY || '891333348995983'
-    const CLOUDINARY_API_SECRET = c.env.CLOUDINARY_API_SECRET || 'EvGafFux5TxxD5eZsQ2QieO6dMk'
+    const CLOUDINARY_UPLOAD_PRESET = c.env.CLOUDINARY_UPLOAD_PRESET || 'gatchi_gayo'
     
     // Cloudinary Upload API URL
     const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`
     
-    // Timestamp
-    const timestamp = Math.floor(Date.now() / 1000).toString()
-    
-    // Public ID 생성
-    const publicId = filename 
-      ? `gatchi-gayo/${filename.replace(/\.[^/.]+$/, '')}-${timestamp}`
-      : `gatchi-gayo/image-${timestamp}`
-    
-    // Signature 생성을 위한 파라미터 (알파벳순 정렬)
-    const paramsToSign = `public_id=${publicId}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`
-    
-    // SHA-1 해시 생성
-    const encoder = new TextEncoder()
-    const data = encoder.encode(paramsToSign)
-    const hashBuffer = await crypto.subtle.digest('SHA-1', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-    
-    console.log('🔐 Cloudinary 인증 정보:')
+    console.log('📤 서버: Cloudinary Unsigned Upload 시작')
     console.log('Cloud Name:', CLOUDINARY_CLOUD_NAME)
-    console.log('API Key:', CLOUDINARY_API_KEY)
-    console.log('Timestamp:', timestamp)
-    console.log('Public ID:', publicId)
-    console.log('Signature:', signature)
+    console.log('Upload Preset:', CLOUDINARY_UPLOAD_PRESET)
     
-    // FormData 생성
+    // FormData 생성 (Unsigned Upload - 간단!)
     const formData = new FormData()
     formData.append('file', image)
-    formData.append('api_key', CLOUDINARY_API_KEY)
-    formData.append('timestamp', timestamp)
-    formData.append('public_id', publicId)
-    formData.append('signature', signature)
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+    
+    // 선택적 파라미터
+    if (filename) {
+      const publicId = `gatchi-gayo/${filename.replace(/\.[^/.]+$/, '')}-${Date.now()}`
+      formData.append('public_id', publicId)
+    }
+    
+    formData.append('folder', 'gatchi-gayo')
     
     // Cloudinary API 호출
     const response = await fetch(uploadUrl, {
