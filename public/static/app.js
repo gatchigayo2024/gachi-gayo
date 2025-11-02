@@ -2024,12 +2024,12 @@ async function submitGathering(e) {
     
     if (result.success) {
       closeCreateGathering()
-      closeDealDetail()
+      
+      // 특가할인 상세 페이지 새로고침 (하단 목록 업데이트)
+      showDealDetail(deal.id)
+      
       showSuccessModal(
-        '포스팅 작성에 성공했습니다.<br>동행 신청자 발생 시 문자로 안내해드립니다.',
-        () => {
-          navigateTo('gatherings')
-        }
+        '포스팅 작성에 성공했습니다.<br>동행 신청자 발생 시 문자로 안내해드립니다.'
       )
     } else {
       console.error('❌ 작성 실패:', result.error)
