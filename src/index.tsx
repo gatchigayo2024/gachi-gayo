@@ -31,6 +31,10 @@ app.get('/admin', (c) => {
     <body class="bg-gray-100">
         <div id="app"></div>
         
+        <script>
+            // ImgBB API 키 설정 (환경 변수가 있으면 사용, 없으면 기본 키 사용)
+            window.IMGBB_API_KEY = '${c.env.IMGBB_API_KEY || '46c880e8ef76835f02b13e40650a2c14'}';
+        </script>
         <script src="/static/admin.js"></script>
     </body>
     </html>

@@ -14,6 +14,7 @@ export type Bindings = {
   NHN_SMS_SENDER?: string;
   RESEND_API_KEY?: string;
   ADMIN_EMAIL?: string;
+  IMGBB_API_KEY?: string;
   ENVIRONMENT?: string;
 }
 
