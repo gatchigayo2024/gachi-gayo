@@ -495,7 +495,180 @@ async function loadDeals() {
 }
 
 function showCreateDealModal() {
-  alert('특가할인 추가 기능은 간단한 폼으로 구현할 수 있습니다.\n이미지 URL, 제목, 내용, 장소 등을 입력받는 폼이 필요합니다.')
+  const modal = document.createElement('div')
+  modal.id = 'create-deal-modal'
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+  modal.innerHTML = `
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold">새 특가할인 추가</h2>
+          <button onclick="closeCreateDealModal()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        
+        <form onsubmit="submitCreateDeal(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">제목 *</label>
+            <input type="text" id="create-deal-title" 
+                   class="w-full px-3 py-2 border rounded-lg" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">부제목</label>
+            <input type="text" id="create-deal-subtitle" 
+                   class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">내용 *</label>
+            <textarea id="create-deal-content" rows="6" 
+                      class="w-full px-3 py-2 border rounded-lg" required></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">
+              <i class="fas fa-upload mr-1"></i>이미지 파일 업로드 *
+            </label>
+            <input type="file" id="create-deal-image-files" accept="image/*" multiple
+                   class="w-full px-3 py-2 border rounded-lg" required>
+            <p class="text-xs text-gray-500 mt-1">최소 1개 이상의 이미지를 선택하세요</p>
+            <div id="create-deal-upload-progress" class="mt-2"></div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">장소명 *</label>
+            <input type="text" id="create-deal-place-name" 
+                   class="w-full px-3 py-2 border rounded-lg" required>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-1">주소 *</label>
+            <input type="text" id="create-deal-place-address" 
+                   class="w-full px-3 py-2 border rounded-lg" required>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">위도</label>
+              <input type="number" step="any" id="create-deal-place-lat" 
+                     class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">경도</label>
+              <input type="number" step="any" id="create-deal-place-lng" 
+                     class="w-full px-3 py-2 border rounded-lg">
+            </div>
+          </div>
+          
+          <div class="flex gap-3 pt-4">
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+              <i class="fas fa-save mr-2"></i>저장
+            </button>
+            <button type="button" onclick="closeCreateDealModal()" 
+                    class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+              취소
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `
+  
+  document.body.appendChild(modal)
+}
+
+function closeCreateDealModal() {
+  const modal = document.getElementById('create-deal-modal')
+  if (modal) modal.remove()
+}
+
+async function submitCreateDeal(event) {
+  event.preventDefault()
+  
+  const title = document.getElementById('create-deal-title').value
+  const subtitle = document.getElementById('create-deal-subtitle').value
+  const content = document.getElementById('create-deal-content').value
+  const place_name = document.getElementById('create-deal-place-name').value
+  const place_address = document.getElementById('create-deal-place-address').value
+  const place_lat = document.getElementById('create-deal-place-lat').value
+  const place_lng = document.getElementById('create-deal-place-lng').value
+  
+  const fileInput = document.getElementById('create-deal-image-files')
+  const files = fileInput.files
+  
+  if (files.length === 0) {
+    alert('최소 1개 이상의 이미지를 선택하세요.')
+    return
+  }
+  
+  try {
+    // 이미지 업로드
+    const uploadedImages = []
+    const progressDiv = document.getElementById('create-deal-upload-progress')
+    
+    progressDiv.innerHTML = `
+      <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+        <i class="fas fa-spinner fa-spin mr-2"></i>
+        이미지 업로드 중... (0/${files.length})
+      </div>
+    `
+    
+    for (let i = 0; i < files.length; i++) {
+      progressDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
+          이미지 업로드 중... (${i + 1}/${files.length})
+        </div>
+      `
+      
+      try {
+        const url = await uploadImageToImgBB(files[i])
+        uploadedImages.push(url)
+        console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
+      } catch (error) {
+        console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, error)
+        throw new Error(`이미지 ${i + 1} 업로드 실패: ${error.message}`)
+      }
+    }
+    
+    progressDiv.innerHTML = `
+      <div class="bg-green-50 border border-green-200 rounded p-3 text-sm text-green-700">
+        <i class="fas fa-check mr-2"></i>
+        ${files.length}개 이미지 업로드 완료!
+      </div>
+    `
+    
+    // 특가할인 생성
+    const res = await fetch('/api/admin/deals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        subtitle,
+        content,
+        images: JSON.stringify(uploadedImages),
+        place_name,
+        place_address,
+        place_lat: place_lat ? parseFloat(place_lat) : null,
+        place_lng: place_lng ? parseFloat(place_lng) : null
+      })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      alert('✅ 특가할인이 추가되었습니다.')
+      closeCreateDealModal()
+      loadDeals()
+    } else {
+      alert('❌ ' + data.error)
+    }
+  } catch (error) {
+    console.error('생성 오류:', error)
+    alert('❌ 오류: ' + error.message)
+  }
 }
 
 async function showEditDealModal(dealId) {
@@ -560,16 +733,14 @@ async function showEditDealModal(dealId) {
                   `).join('')}
                 </div>
                 <div class="border-t pt-3">
-                  <label class="block text-sm font-medium mb-2">이미지 URL 추가</label>
-                  <div class="flex gap-2">
-                    <input type="text" id="edit-deal-new-image-url" placeholder="https://example.com/image.jpg"
-                           class="flex-1 px-3 py-2 border rounded-lg">
-                    <button type="button" onclick="addImageUrl()" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                      <i class="fas fa-plus mr-1"></i>추가
-                    </button>
-                  </div>
-                  <p class="text-xs text-gray-500 mt-1">이미지 URL을 입력하고 추가 버튼을 클릭하세요</p>
+                  <label class="block text-sm font-medium mb-2">
+                    <i class="fas fa-upload mr-1"></i>이미지 파일 업로드
+                  </label>
+                  <input type="file" id="edit-deal-image-files" accept="image/*" multiple
+                         onchange="previewUploadedImages()"
+                         class="w-full px-3 py-2 border rounded-lg">
+                  <p class="text-xs text-gray-500 mt-1">이미지 파일을 선택하세요 (여러 개 선택 가능)</p>
+                  <div id="edit-deal-upload-progress" class="mt-2"></div>
                 </div>
               </div>
               <input type="hidden" id="edit-deal-images" value='${JSON.stringify(images)}'>
@@ -632,46 +803,65 @@ function removeCurrentImage(index) {
   images.splice(index, 1)
   imagesInput.value = JSON.stringify(images)
   
-  // UI 업데이트
+  // UI 업데이트 - 전체 다시 렌더링
   const imageContainer = document.getElementById('edit-deal-current-images')
-  const imageElement = imageContainer.children[index]
-  if (imageElement) imageElement.remove()
+  imageContainer.innerHTML = images.map((img, idx) => `
+    <div class="relative">
+      <img src="${img}" class="w-full h-24 object-cover rounded border">
+      <button type="button" onclick="removeCurrentImage(${idx})" 
+              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `).join('')
 }
 
-function addImageUrl() {
-  const urlInput = document.getElementById('edit-deal-new-image-url')
-  const url = urlInput.value.trim()
+function previewUploadedImages() {
+  const fileInput = document.getElementById('edit-deal-image-files')
+  const files = fileInput.files
   
-  if (!url) {
-    alert('이미지 URL을 입력하세요.')
-    return
-  }
+  if (files.length === 0) return
   
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    alert('올바른 URL을 입력하세요 (http:// 또는 https://로 시작)')
-    return
-  }
-  
-  const imagesInput = document.getElementById('edit-deal-images')
-  const images = JSON.parse(imagesInput.value)
-  images.push(url)
-  imagesInput.value = JSON.stringify(images)
-  
-  // UI 업데이트
-  const imageContainer = document.getElementById('edit-deal-current-images')
-  const newImageDiv = document.createElement('div')
-  newImageDiv.className = 'relative'
-  newImageDiv.innerHTML = `
-    <img src="${url}" class="w-full h-24 object-cover rounded border">
-    <button type="button" onclick="removeCurrentImage(${images.length - 1})" 
-            class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600">
-      <i class="fas fa-times"></i>
-    </button>
+  const progressDiv = document.getElementById('edit-deal-upload-progress')
+  progressDiv.innerHTML = `
+    <div class="text-sm text-gray-600">
+      <i class="fas fa-spinner fa-spin mr-2"></i>${files.length}개의 이미지를 준비 중...
+    </div>
   `
-  imageContainer.appendChild(newImageDiv)
-  
-  urlInput.value = ''
-  alert('✅ 이미지가 추가되었습니다.')
+}
+
+async function uploadImageToImgBB(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    
+    reader.onload = async (e) => {
+      try {
+        const base64 = e.target.result.split(',')[1]
+        
+        // ImgBB API 호출
+        const formData = new FormData()
+        formData.append('image', base64)
+        
+        const response = await fetch('https://api.imgbb.com/1/upload?key=46c880e8ef76835f02b13e40650a2c14', {
+          method: 'POST',
+          body: formData
+        })
+        
+        const data = await response.json()
+        
+        if (data.success) {
+          resolve(data.data.url)
+        } else {
+          reject(new Error('업로드 실패'))
+        }
+      } catch (error) {
+        reject(error)
+      }
+    }
+    
+    reader.onerror = () => reject(new Error('파일 읽기 실패'))
+    reader.readAsDataURL(file)
+  })
 }
 
 async function submitEditDeal(event, dealId) {
@@ -685,15 +875,55 @@ async function submitEditDeal(event, dealId) {
   const place_lat = document.getElementById('edit-deal-place-lat').value
   const place_lng = document.getElementById('edit-deal-place-lng').value
   
-  // 최종 이미지 배열 가져오기
-  const finalImages = JSON.parse(document.getElementById('edit-deal-images').value)
+  // 기존 이미지 배열 가져오기
+  let finalImages = JSON.parse(document.getElementById('edit-deal-images').value)
   
-  if (finalImages.length === 0) {
-    alert('최소 1개 이상의 이미지가 필요합니다.')
-    return
-  }
+  // 새로 업로드할 파일 확인
+  const fileInput = document.getElementById('edit-deal-image-files')
+  const files = fileInput.files
   
   try {
+    // 파일 업로드 처리
+    if (files.length > 0) {
+      const progressDiv = document.getElementById('edit-deal-upload-progress')
+      progressDiv.innerHTML = `
+        <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+          <i class="fas fa-spinner fa-spin mr-2"></i>
+          이미지 업로드 중... (0/${files.length})
+        </div>
+      `
+      
+      for (let i = 0; i < files.length; i++) {
+        progressDiv.innerHTML = `
+          <div class="bg-blue-50 border border-blue-200 rounded p-3 text-sm">
+            <i class="fas fa-spinner fa-spin mr-2"></i>
+            이미지 업로드 중... (${i + 1}/${files.length})
+          </div>
+        `
+        
+        try {
+          const url = await uploadImageToImgBB(files[i])
+          finalImages.push(url)
+          console.log(`✅ 이미지 ${i + 1} 업로드 완료:`, url)
+        } catch (error) {
+          console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, error)
+          throw new Error(`이미지 ${i + 1} 업로드 실패: ${error.message}`)
+        }
+      }
+      
+      progressDiv.innerHTML = `
+        <div class="bg-green-50 border border-green-200 rounded p-3 text-sm text-green-700">
+          <i class="fas fa-check mr-2"></i>
+          ${files.length}개 이미지 업로드 완료!
+        </div>
+      `
+    }
+    
+    if (finalImages.length === 0) {
+      alert('최소 1개 이상의 이미지가 필요합니다.')
+      return
+    }
+    
     // 특가할인 업데이트
     const res = await fetch(`/api/admin/deals/${dealId}`, {
       method: 'PUT',
@@ -721,7 +951,7 @@ async function submitEditDeal(event, dealId) {
     }
   } catch (error) {
     console.error('수정 오류:', error)
-    alert('수정 중 오류가 발생했습니다: ' + error.message)
+    alert('❌ 오류: ' + error.message)
   }
 }
 
