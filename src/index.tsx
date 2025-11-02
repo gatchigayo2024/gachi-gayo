@@ -1438,7 +1438,7 @@ app.post('/api/admin/upload-image', async (c) => {
     console.log('📤 서버: Cloudinary 이미지 업로드 시작')
     
     // Cloudinary 설정
-    const CLOUDINARY_CLOUD_NAME = c.env.CLOUDINARY_CLOUD_NAME || 'dqorhlgnv'
+    const CLOUDINARY_CLOUD_NAME = c.env.CLOUDINARY_CLOUD_NAME || 'dbifhfx6l'
     const CLOUDINARY_API_KEY = c.env.CLOUDINARY_API_KEY || '891333348995983'
     const CLOUDINARY_API_SECRET = c.env.CLOUDINARY_API_SECRET || 'EvGafFux5TxxD5eZsQ2QieO6dMk'
     
