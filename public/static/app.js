@@ -1443,6 +1443,11 @@ async function toggleGatheringLikeSmall(gatheringId) {
 
 // 같이가요 좋아요 토글
 async function toggleGatheringLike(event, gatheringId) {
+  // 이벤트 전파 막기 (카드 클릭 방지)
+  if (event) {
+    event.stopPropagation()
+  }
+  
   if (!requireLogin(() => toggleGatheringLike(null, gatheringId))) return
   
   try {
