@@ -67,7 +67,19 @@ app.post('/api/sms/send', async (c) => {
     ).bind(phone, code, expiresAt).run()
     
     // 개발 모드 체크 (환경 변수로 제어)
+    const hasAligoKey = !!c.env.ALIGO_API_KEY
+    const hasAligoUserId = !!c.env.ALIGO_USER_ID
+    const hasAligoSender = !!c.env.ALIGO_SENDER
     const isDevelopment = c.env.ENVIRONMENT === 'development' || !c.env.ALIGO_API_KEY
+    
+    // 디버깅 로그
+    console.log('🔍 환경변수 체크:', {
+      ENVIRONMENT: c.env.ENVIRONMENT,
+      hasAligoKey,
+      hasAligoUserId,
+      hasAligoSender,
+      isDevelopment
+    })
     
     if (isDevelopment) {
       // 개발 모드: 콘솔에 인증번호 출력, SMS는 발송하지 않음
