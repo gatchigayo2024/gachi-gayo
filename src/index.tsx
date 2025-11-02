@@ -1426,40 +1426,70 @@ app.delete('/api/admin/users/:id/unblock', async (c) => {
 
 // 특가할인 관리 API
 // 특가할인 생성
-// 이미지 업로드 API (R2)
+// 이미지 업로드 API (ImgBB를 통한 업로드)
 app.post('/api/admin/upload-image', async (c) => {
   try {
-    const { image } = await c.req.json()
+    const { image, filename } = await c.req.json()
     
     if (!image) {
       return c.json({ success: false, error: 'No image provided' }, 400)
     }
     
-    // Base64 디코딩
+    console.log('📤 서버: 이미지 업로드 시작')
+    
+    // Base64 데이터에서 실제 데이터 부분만 추출
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '')
-    const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0))
     
-    // 파일명 생성 (타임스탬프 + 랜덤)
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`
+    // ImgBB API 키 (환경 변수 또는 기본값)
+    const IMGBB_API_KEY = c.env.IMGBB_API_KEY || '46c880e8ef76835f02b13e40650a2c14'
     
-    // R2에 업로드
-    await c.env.R2.put(filename, buffer, {
-      httpMetadata: {
-        contentType: 'image/jpeg',
-      },
+    // FormData 생성
+    const formData = new FormData()
+    formData.append('image', base64Data)
+    if (filename) {
+      formData.append('name', filename.replace(/\.[^/.]+$/, '')) // 확장자 제거
+    }
+    
+    // ImgBB API 호출
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: formData
     })
     
-    // 공개 URL 생성 (R2 버킷의 공개 도메인 사용)
-    // 형식: https://pub-[bucket-id].r2.dev/[filename]
-    // 또는 커스텀 도메인 사용 가능
-    const publicUrl = `https://gatchi-gayo-images.r2.dev/${filename}`
+    console.log('📥 서버: ImgBB 응답 상태:', response.status)
     
-    console.log('✅ 이미지 업로드 성공:', publicUrl)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ 서버: ImgBB 오류:', errorText)
+      return c.json({ 
+        success: false, 
+        error: `ImgBB API 오류: ${response.status}` 
+      }, 500)
+    }
     
-    return c.json({ success: true, url: publicUrl })
+    const data = await response.json()
+    
+    if (data.success && data.data && data.data.url) {
+      console.log('✅ 서버: 업로드 성공:', data.data.url)
+      return c.json({ 
+        success: true, 
+        url: data.data.url,
+        thumbnail: data.data.thumb?.url,
+        display_url: data.data.display_url
+      })
+    } else {
+      console.error('❌ 서버: ImgBB 응답 실패:', data)
+      return c.json({ 
+        success: false, 
+        error: data.error?.message || 'ImgBB 업로드 실패' 
+      }, 500)
+    }
   } catch (error) {
-    console.error('❌ 이미지 업로드 오류:', error)
-    return c.json({ success: false, error: 'Failed to upload image' }, 500)
+    console.error('❌ 서버: 이미지 업로드 오류:', error)
+    return c.json({ 
+      success: false, 
+      error: `서버 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}` 
+    }, 500)
   }
 })
 

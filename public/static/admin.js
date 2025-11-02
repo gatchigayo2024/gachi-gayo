@@ -836,39 +836,38 @@ async function uploadImageToImgBB(file) {
     
     reader.onload = async (e) => {
       try {
-        const base64 = e.target.result.split(',')[1]
-        
         console.log('📤 이미지 업로드 시작:', file.name, '크기:', (file.size / 1024).toFixed(2) + 'KB')
         
-        // ImgBB API 호출 - 환경 변수에서 API 키 가져오기 (없으면 기본 키 사용)
-        const IMGBB_API_KEY = window.IMGBB_API_KEY || '46c880e8ef76835f02b13e40650a2c14'
-        
-        const formData = new FormData()
-        formData.append('image', base64)
-        
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        // 백엔드 API를 통한 업로드로 변경 (CORS 문제 방지)
+        const response = await fetch('/api/admin/upload-image', {
           method: 'POST',
-          body: formData
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: e.target.result,
+            filename: file.name
+          })
         })
         
         console.log('📥 응답 상태:', response.status, response.statusText)
         
         if (!response.ok) {
-          const errorText = await response.text()
-          console.error('❌ ImgBB 오류 응답:', errorText)
-          reject(new Error(`ImgBB API 오류: ${response.status}`))
+          const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
+          console.error('❌ 업로드 오류:', errorData)
+          reject(new Error(errorData.error || `업로드 실패: ${response.status}`))
           return
         }
         
         const data = await response.json()
         console.log('📦 응답 데이터:', data)
         
-        if (data.success && data.data && data.data.url) {
-          console.log('✅ 업로드 성공:', data.data.url)
-          resolve(data.data.url)
+        if (data.success && data.url) {
+          console.log('✅ 업로드 성공:', data.url)
+          resolve(data.url)
         } else {
           console.error('❌ 업로드 실패:', data)
-          reject(new Error(data.error?.message || '업로드 실패'))
+          reject(new Error(data.error || '업로드 실패'))
         }
       } catch (error) {
         console.error('❌ 업로드 중 예외 발생:', error)
