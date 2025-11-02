@@ -546,10 +546,33 @@ async function showEditDealModal(dealId) {
             </div>
             
             <div>
-              <label class="block text-sm font-medium mb-1">이미지 URL (각 줄마다 하나씩)</label>
-              <textarea id="edit-deal-images" rows="3" 
-                        class="w-full px-3 py-2 border rounded-lg" required>${images.join('\n')}</textarea>
-              <p class="text-xs text-gray-500 mt-1">각 이미지 URL을 한 줄씩 입력하세요</p>
+              <label class="block text-sm font-medium mb-1">이미지</label>
+              <div class="space-y-3">
+                <div id="edit-deal-current-images" class="grid grid-cols-3 gap-2">
+                  ${images.map((img, idx) => `
+                    <div class="relative">
+                      <img src="${img}" class="w-full h-24 object-cover rounded border">
+                      <button type="button" onclick="removeCurrentImage(${idx})" 
+                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+                <div class="border-t pt-3">
+                  <label class="block text-sm font-medium mb-2">이미지 URL 추가</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="edit-deal-new-image-url" placeholder="https://example.com/image.jpg"
+                           class="flex-1 px-3 py-2 border rounded-lg">
+                    <button type="button" onclick="addImageUrl()" 
+                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                      <i class="fas fa-plus mr-1"></i>추가
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">이미지 URL을 입력하고 추가 버튼을 클릭하세요</p>
+                </div>
+              </div>
+              <input type="hidden" id="edit-deal-images" value='${JSON.stringify(images)}'>
             </div>
             
             <div>
@@ -603,22 +626,75 @@ function closeEditDealModal() {
   if (modal) modal.remove()
 }
 
+function removeCurrentImage(index) {
+  const imagesInput = document.getElementById('edit-deal-images')
+  const images = JSON.parse(imagesInput.value)
+  images.splice(index, 1)
+  imagesInput.value = JSON.stringify(images)
+  
+  // UI 업데이트
+  const imageContainer = document.getElementById('edit-deal-current-images')
+  const imageElement = imageContainer.children[index]
+  if (imageElement) imageElement.remove()
+}
+
+function addImageUrl() {
+  const urlInput = document.getElementById('edit-deal-new-image-url')
+  const url = urlInput.value.trim()
+  
+  if (!url) {
+    alert('이미지 URL을 입력하세요.')
+    return
+  }
+  
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    alert('올바른 URL을 입력하세요 (http:// 또는 https://로 시작)')
+    return
+  }
+  
+  const imagesInput = document.getElementById('edit-deal-images')
+  const images = JSON.parse(imagesInput.value)
+  images.push(url)
+  imagesInput.value = JSON.stringify(images)
+  
+  // UI 업데이트
+  const imageContainer = document.getElementById('edit-deal-current-images')
+  const newImageDiv = document.createElement('div')
+  newImageDiv.className = 'relative'
+  newImageDiv.innerHTML = `
+    <img src="${url}" class="w-full h-24 object-cover rounded border">
+    <button type="button" onclick="removeCurrentImage(${images.length - 1})" 
+            class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600">
+      <i class="fas fa-times"></i>
+    </button>
+  `
+  imageContainer.appendChild(newImageDiv)
+  
+  urlInput.value = ''
+  alert('✅ 이미지가 추가되었습니다.')
+}
+
 async function submitEditDeal(event, dealId) {
   event.preventDefault()
   
   const title = document.getElementById('edit-deal-title').value
   const subtitle = document.getElementById('edit-deal-subtitle').value
   const content = document.getElementById('edit-deal-content').value
-  const imagesText = document.getElementById('edit-deal-images').value
   const place_name = document.getElementById('edit-deal-place-name').value
   const place_address = document.getElementById('edit-deal-place-address').value
   const place_lat = document.getElementById('edit-deal-place-lat').value
   const place_lng = document.getElementById('edit-deal-place-lng').value
   
-  // 이미지 URL 배열로 변환
-  const images = imagesText.split('\n').filter(url => url.trim()).map(url => url.trim())
+  // 최종 이미지 배열 가져오기
+  const finalImages = JSON.parse(document.getElementById('edit-deal-images').value)
+  
+  if (finalImages.length === 0) {
+    alert('최소 1개 이상의 이미지가 필요합니다.')
+    return
+  }
   
   try {
+    // 특가할인 업데이트
     const res = await fetch(`/api/admin/deals/${dealId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -626,7 +702,7 @@ async function submitEditDeal(event, dealId) {
         title,
         subtitle,
         content,
-        images: JSON.stringify(images),
+        images: JSON.stringify(finalImages),
         place_name,
         place_address,
         place_lat: place_lat ? parseFloat(place_lat) : null,
@@ -645,7 +721,7 @@ async function submitEditDeal(event, dealId) {
     }
   } catch (error) {
     console.error('수정 오류:', error)
-    alert('수정 중 오류가 발생했습니다.')
+    alert('수정 중 오류가 발생했습니다: ' + error.message)
   }
 }
 
@@ -821,10 +897,17 @@ async function showEditGatheringModal(gatheringId) {
                      class="w-full px-3 py-2 border rounded-lg" required>
             </div>
             
-            <div>
-              <label class="block text-sm font-medium mb-1">최대 인원</label>
-              <input type="number" id="edit-gathering-max-people" value="${g.max_people}" 
-                     class="w-full px-3 py-2 border rounded-lg" min="2" required>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">현재 참여 인원</label>
+                <input type="number" id="edit-gathering-current-people" value="${g.current_people}" 
+                       class="w-full px-3 py-2 border rounded-lg" min="1" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">최대 인원</label>
+                <input type="number" id="edit-gathering-max-people" value="${g.max_people}" 
+                       class="w-full px-3 py-2 border rounded-lg" min="2" required>
+              </div>
             </div>
             
             <div>
@@ -868,6 +951,7 @@ async function submitEditGathering(event, gatheringId) {
   const time_text = document.getElementById('edit-gathering-time').value
   const place_name = document.getElementById('edit-gathering-place-name').value
   const place_address = document.getElementById('edit-gathering-place-address').value
+  const current_people = parseInt(document.getElementById('edit-gathering-current-people').value)
   const max_people = parseInt(document.getElementById('edit-gathering-max-people').value)
   const question = document.getElementById('edit-gathering-question').value
   
@@ -882,6 +966,7 @@ async function submitEditGathering(event, gatheringId) {
         time_text,
         place_name,
         place_address,
+        current_people,
         max_people,
         question
       })

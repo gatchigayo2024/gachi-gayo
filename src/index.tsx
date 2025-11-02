@@ -1510,7 +1510,7 @@ app.put('/api/admin/gatherings/:id', async (c) => {
     await c.env.DB.prepare(`
       UPDATE gatherings 
       SET title = ?, content = ?, date_text = ?, time_text = ?, 
-          place_name = ?, place_address = ?, max_people = ?, question = ?
+          place_name = ?, place_address = ?, current_people = ?, max_people = ?, question = ?
       WHERE id = ?
     `).bind(
       data.title,
@@ -1519,6 +1519,7 @@ app.put('/api/admin/gatherings/:id', async (c) => {
       data.time_text,
       data.place_name,
       data.place_address,
+      data.current_people || 1,
       data.max_people,
       data.question || '',
       id
