@@ -836,9 +836,16 @@ async function uploadImageToImgBB(file) {
     
     reader.onload = async (e) => {
       try {
-        console.log('📤 이미지 업로드 시작:', file.name, '크기:', (file.size / 1024).toFixed(2) + 'KB')
+        console.log('====================================')
+        console.log('📤 이미지 업로드 시작')
+        console.log('파일명:', file.name)
+        console.log('크기:', (file.size / 1024).toFixed(2) + 'KB')
+        console.log('타입:', file.type)
+        console.log('====================================')
         
         // 백엔드 API를 통한 업로드로 변경 (CORS 문제 방지)
+        console.log('🌐 API 호출 중: /api/admin/upload-image')
+        
         const response = await fetch('/api/admin/upload-image', {
           method: 'POST',
           headers: {
@@ -850,36 +857,59 @@ async function uploadImageToImgBB(file) {
           })
         })
         
-        console.log('📥 응답 상태:', response.status, response.statusText)
+        console.log('📥 응답 받음')
+        console.log('상태 코드:', response.status)
+        console.log('상태 텍스트:', response.statusText)
+        console.log('====================================')
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
-          console.error('❌ 업로드 오류:', errorData)
-          reject(new Error(errorData.error || `업로드 실패: ${response.status}`))
+          let errorData
+          const contentType = response.headers.get('content-type')
+          if (contentType && contentType.includes('application/json')) {
+            errorData = await response.json()
+          } else {
+            const text = await response.text()
+            errorData = { error: text || '알 수 없는 오류' }
+          }
+          
+          console.error('❌ 서버 오류 응답:', errorData)
+          reject(new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`))
           return
         }
         
         const data = await response.json()
-        console.log('📦 응답 데이터:', data)
+        console.log('📦 응답 데이터:', JSON.stringify(data, null, 2))
         
         if (data.success && data.url) {
-          console.log('✅ 업로드 성공:', data.url)
+          console.log('✅ 업로드 성공!')
+          console.log('이미지 URL:', data.url)
+          console.log('====================================')
           resolve(data.url)
         } else {
-          console.error('❌ 업로드 실패:', data)
-          reject(new Error(data.error || '업로드 실패'))
+          console.error('❌ 업로드 실패 - success가 false')
+          console.error('전체 응답:', data)
+          reject(new Error(data.error || '업로드 실패 (success: false)'))
         }
       } catch (error) {
-        console.error('❌ 업로드 중 예외 발생:', error)
+        console.error('====================================')
+        console.error('❌ 치명적 오류 발생')
+        console.error('오류 타입:', error.name)
+        console.error('오류 메시지:', error.message)
+        console.error('스택:', error.stack)
+        console.error('====================================')
         reject(error)
       }
     }
     
-    reader.onerror = () => {
+    reader.onerror = (error) => {
+      console.error('====================================')
       console.error('❌ 파일 읽기 실패')
+      console.error('오류:', error)
+      console.error('====================================')
       reject(new Error('파일 읽기 실패'))
     }
     
+    console.log('📖 파일 읽기 시작...')
     reader.readAsDataURL(file)
   })
 }
