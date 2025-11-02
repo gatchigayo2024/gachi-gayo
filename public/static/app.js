@@ -1222,13 +1222,15 @@ function renderDealDetailPanel() {
                 </button>
               </div>
               
-              ${gatherings.length > 0 ? `
-                <div class="space-y-4">
-                  ${gatherings.map(g => renderGatheringCardSmall(g)).join('')}
-                </div>
-              ` : `
-                <p class="text-center text-gray-500 py-8">아직 같이가요 포스팅이 없습니다</p>
-              `}
+              <div id="deal-gatherings-list">
+                ${gatherings.length > 0 ? `
+                  <div class="space-y-4">
+                    ${gatherings.map(g => renderGatheringCardSmall(g)).join('')}
+                  </div>
+                ` : `
+                  <p class="text-center text-gray-500 py-8">아직 같이가요 포스팅이 없습니다</p>
+                `}
+              </div>
             </div>
           </div>
         </div>
@@ -2025,8 +2027,8 @@ async function submitGathering(e) {
     if (result.success) {
       closeCreateGathering()
       
-      // 특가할인 상세 페이지 새로고침 (하단 목록 업데이트)
-      showDealDetail(deal.id)
+      // 하단 같이가요 목록만 업데이트 (스크롤 위치 유지)
+      await updateDealGatheringsList(deal.id)
       
       showSuccessModal(
         '포스팅 작성에 성공했습니다.<br>동행 신청자 발생 시 문자로 안내해드립니다.'
@@ -2038,6 +2040,34 @@ async function submitGathering(e) {
   } catch (error) {
     console.error('❌ 같이가요 작성 중 오류:', error)
     alert('포스팅 작성 중 오류가 발생했습니다: ' + error.message)
+  }
+}
+
+// 특가할인 상세 하단의 같이가요 목록만 업데이트 (스크롤 위치 유지)
+async function updateDealGatheringsList(dealId) {
+  try {
+    const userId = APP_STATE.currentUser?.id
+    const url = `/api/gatherings?deal_id=${dealId}${userId ? '&user_id=' + userId : ''}`
+    
+    const res = await fetch(url)
+    const data = await res.json()
+    
+    if (data.success) {
+      const gatherings = data.gatherings
+      const listElement = document.getElementById('deal-gatherings-list')
+      
+      if (listElement) {
+        listElement.innerHTML = gatherings.length > 0 ? `
+          <div class="space-y-4">
+            ${gatherings.map(g => renderGatheringCardSmall(g)).join('')}
+          </div>
+        ` : `
+          <p class="text-center text-gray-500 py-8">아직 같이가요 포스팅이 없습니다</p>
+        `
+      }
+    }
+  } catch (error) {
+    console.error('❌ 같이가요 목록 업데이트 실패:', error)
   }
 }
 
