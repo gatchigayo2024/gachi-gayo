@@ -1619,11 +1619,18 @@ app.put('/api/admin/gatherings/:id', async (c) => {
   }
 })
 
-// 같이가요 삭제
+// 같이가요 삭제 (CASCADE 삭제)
 app.delete('/api/admin/gatherings/:id', async (c) => {
   try {
     const id = c.req.param('id')
     
+    // 1. 먼저 관련된 동행 신청 삭제
+    await c.env.DB.prepare('DELETE FROM gathering_applications WHERE gathering_id = ?').bind(id).run()
+    
+    // 2. 관련된 좋아요 삭제
+    await c.env.DB.prepare('DELETE FROM gathering_likes WHERE gathering_id = ?').bind(id).run()
+    
+    // 3. 같이가요 포스팅 삭제
     await c.env.DB.prepare('DELETE FROM gatherings WHERE id = ?').bind(id).run()
     
     return c.json({ success: true })
