@@ -619,7 +619,7 @@ function showCreateDealModal() {
           </div>
           
           <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
+            <button type="submit" id="create-deal-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
               <i class="fas fa-save mr-2"></i>저장
             </button>
             <button type="button" onclick="closeCreateDealModal()" 
@@ -643,6 +643,9 @@ function closeCreateDealModal() {
 async function submitCreateDeal(event) {
   event.preventDefault()
   
+  const submitBtn = document.getElementById('create-deal-submit-btn')
+  const originalBtnText = submitBtn.innerHTML
+  
   const title = document.getElementById('create-deal-title').value
   const subtitle = document.getElementById('create-deal-subtitle').value
   const content = document.getElementById('create-deal-content').value
@@ -662,7 +665,10 @@ async function submitCreateDeal(event) {
     return
   }
   
-  alert(`${files.length}개의 이미지를 업로드합니다. 잠시만 기다려주세요...`)
+  // 버튼 비활성화
+  submitBtn.disabled = true
+  submitBtn.classList.add('opacity-50', 'cursor-not-allowed')
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>업로드 중...'
   
   try {
     // 이미지 업로드
@@ -695,6 +701,10 @@ async function submitCreateDeal(event) {
       } catch (error) {
         console.error(`❌ 이미지 ${i + 1} 업로드 실패:`, error)
         alert(`❌ 이미지 ${i + 1} 업로드 실패: ${error.message}`)
+        // 버튼 복구
+        submitBtn.disabled = false
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed')
+        submitBtn.innerHTML = originalBtnText
         throw new Error(`이미지 ${i + 1} 업로드 실패: ${error.message}`)
       }
     }
@@ -730,10 +740,18 @@ async function submitCreateDeal(event) {
       loadDeals()
     } else {
       alert('❌ ' + data.error)
+      // 버튼 복구 (오류 시)
+      submitBtn.disabled = false
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed')
+      submitBtn.innerHTML = originalBtnText
     }
   } catch (error) {
     console.error('생성 오류:', error)
     alert('❌ 오류: ' + error.message)
+    // 버튼 복구 (예외 발생 시)
+    submitBtn.disabled = false
+    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed')
+    submitBtn.innerHTML = originalBtnText
   }
 }
 
@@ -838,7 +856,7 @@ async function showEditDealModal(dealId) {
             </div>
             
             <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
-              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
+              <button type="submit" id="edit-deal-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
                 <i class="fas fa-save mr-2"></i>저장
               </button>
               <button type="button" onclick="closeEditDealModal()" 
@@ -983,6 +1001,9 @@ async function uploadImageToImgBB(file) {
 async function submitEditDeal(event, dealId) {
   event.preventDefault()
   
+  const submitBtn = document.getElementById('edit-deal-submit-btn')
+  const originalBtnText = submitBtn.innerHTML
+  
   const title = document.getElementById('edit-deal-title').value
   const subtitle = document.getElementById('edit-deal-subtitle').value
   const content = document.getElementById('edit-deal-content').value
@@ -1005,7 +1026,11 @@ async function submitEditDeal(event, dealId) {
     // 파일 업로드 처리
     if (files.length > 0) {
       console.log('📁 파일 업로드 시작!')
-      alert(`${files.length}개의 이미지를 업로드합니다. 잠시만 기다려주세요...`)
+      
+      // 버튼 비활성화
+      submitBtn.disabled = true
+      submitBtn.classList.add('opacity-50', 'cursor-not-allowed')
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>업로드 중...'
       
       const progressDiv = document.getElementById('edit-deal-upload-progress')
       progressDiv.innerHTML = `
@@ -1073,10 +1098,18 @@ async function submitEditDeal(event, dealId) {
       loadDeals()
     } else {
       alert('❌ ' + data.error)
+      // 버튼 복구 (오류 시)
+      submitBtn.disabled = false
+      submitBtn.classList.remove('opacity-50', 'cursor-not-allowed')
+      submitBtn.innerHTML = originalBtnText
     }
   } catch (error) {
     console.error('수정 오류:', error)
     alert('❌ 오류: ' + error.message)
+    // 버튼 복구 (예외 발생 시)
+    submitBtn.disabled = false
+    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed')
+    submitBtn.innerHTML = originalBtnText
   }
 }
 
