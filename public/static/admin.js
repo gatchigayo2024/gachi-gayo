@@ -1459,6 +1459,7 @@ async function loadApplications() {
                 <th class="text-left p-3">ID</th>
                 <th class="text-left p-3">신청자</th>
                 <th class="text-left p-3">전화번호</th>
+                <th class="text-left p-3">메시지</th>
                 <th class="text-left p-3">포스팅</th>
                 <th class="text-left p-3">작성자</th>
                 <th class="text-left p-3">작성자 전화</th>
@@ -1473,6 +1474,12 @@ async function loadApplications() {
                   <td class="p-3">${app.id}</td>
                   <td class="p-3">${app.applicant_name}</td>
                   <td class="p-3 font-mono text-blue-600">${app.applicant_phone}</td>
+                  <td class="p-3 max-w-xs">
+                    ${app.answer ? 
+                      `<div class="text-sm text-gray-700 italic">"${app.answer}"</div>` : 
+                      '<span class="text-gray-400 text-xs">메시지 없음</span>'
+                    }
+                  </td>
                   <td class="p-3">${app.gathering_title}</td>
                   <td class="p-3">${app.author_name}</td>
                   <td class="p-3 font-mono text-green-600">${app.author_phone}</td>
@@ -1502,6 +1509,15 @@ async function loadApplications() {
                   <div class="text-sm font-medium">${app.applicant_name}</div>
                   <div class="text-xs font-mono text-blue-600">${app.applicant_phone}</div>
                 </div>
+                
+                ${app.answer ? `
+                  <div class="bg-yellow-50 rounded p-2 border border-yellow-200">
+                    <div class="text-xs text-yellow-700 font-medium mb-1">
+                      <i class="fas fa-comment mr-1"></i>신청 메시지
+                    </div>
+                    <div class="text-sm text-gray-700 italic">"${app.answer}"</div>
+                  </div>
+                ` : ''}
                 
                 <div class="bg-green-50 rounded p-2">
                   <div class="text-xs text-green-600 font-medium mb-1">
