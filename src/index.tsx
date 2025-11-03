@@ -1650,6 +1650,7 @@ app.get('/api/admin/applications', async (c) => {
         g.place_name,
         g.date_text,
         g.time_text,
+        g.question,
         applicant.name as applicant_name,
         applicant.phone as applicant_phone,
         author.name as author_name,

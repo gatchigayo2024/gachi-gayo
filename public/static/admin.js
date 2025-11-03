@@ -1459,7 +1459,7 @@ async function loadApplications() {
                 <th class="text-left p-3">ID</th>
                 <th class="text-left p-3">신청자</th>
                 <th class="text-left p-3">전화번호</th>
-                <th class="text-left p-3">메시지</th>
+                <th class="text-left p-3">질문 / 답변</th>
                 <th class="text-left p-3">포스팅</th>
                 <th class="text-left p-3">작성자</th>
                 <th class="text-left p-3">작성자 전화</th>
@@ -1474,11 +1474,21 @@ async function loadApplications() {
                   <td class="p-3">${app.id}</td>
                   <td class="p-3">${app.applicant_name}</td>
                   <td class="p-3 font-mono text-blue-600">${app.applicant_phone}</td>
-                  <td class="p-3 max-w-xs">
-                    ${app.answer ? 
-                      `<div class="text-sm text-gray-700 italic">"${app.answer}"</div>` : 
-                      '<span class="text-gray-400 text-xs">메시지 없음</span>'
-                    }
+                  <td class="p-3 max-w-md">
+                    <div class="space-y-1">
+                      ${app.question ? 
+                        `<div class="text-xs text-gray-500">
+                          <span class="font-medium">Q:</span> ${app.question}
+                         </div>` : 
+                        ''
+                      }
+                      ${app.answer ? 
+                        `<div class="text-sm text-gray-700">
+                          <span class="font-medium text-blue-600">A:</span> <span class="italic">"${app.answer}"</span>
+                         </div>` : 
+                        '<div class="text-gray-400 text-xs">답변 없음</div>'
+                      }
+                    </div>
                   </td>
                   <td class="p-3">${app.gathering_title}</td>
                   <td class="p-3">${app.author_name}</td>
@@ -1510,12 +1520,25 @@ async function loadApplications() {
                   <div class="text-xs font-mono text-blue-600">${app.applicant_phone}</div>
                 </div>
                 
-                ${app.answer ? `
-                  <div class="bg-yellow-50 rounded p-2 border border-yellow-200">
-                    <div class="text-xs text-yellow-700 font-medium mb-1">
-                      <i class="fas fa-comment mr-1"></i>신청 메시지
+                ${(app.question || app.answer) ? `
+                  <div class="bg-yellow-50 rounded p-3 border border-yellow-200">
+                    <div class="text-xs text-yellow-700 font-medium mb-2">
+                      <i class="fas fa-comments mr-1"></i>질문 / 답변
                     </div>
-                    <div class="text-sm text-gray-700 italic">"${app.answer}"</div>
+                    <div class="space-y-2">
+                      ${app.question ? `
+                        <div class="bg-white rounded p-2 border-l-2 border-orange-400">
+                          <div class="text-xs text-orange-600 font-medium mb-1">Q. 작성자 질문</div>
+                          <div class="text-sm text-gray-700">${app.question}</div>
+                        </div>
+                      ` : ''}
+                      ${app.answer ? `
+                        <div class="bg-white rounded p-2 border-l-2 border-blue-400">
+                          <div class="text-xs text-blue-600 font-medium mb-1">A. 신청자 답변</div>
+                          <div class="text-sm text-gray-700 italic">"${app.answer}"</div>
+                        </div>
+                      ` : '<div class="text-xs text-gray-500 italic">답변 없음</div>'}
+                    </div>
                   </div>
                 ` : ''}
                 
