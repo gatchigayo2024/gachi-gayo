@@ -18,13 +18,17 @@ app.get('/admin', (c) => {
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>같이가요 관리자</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             * {
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+            /* iOS Safari 자동 확대 방지 */
+            input, select, textarea, button {
+                font-size: 16px !important;
             }
         </style>
     </head>
@@ -1032,7 +1036,7 @@ app.get('/', (c) => {
     <html lang="ko">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>같이가요 - 특가 할인과 함께하는 모임</title>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
         <script src="https://cdn.tailwindcss.com"></script>
@@ -1047,6 +1051,11 @@ app.get('/', (c) => {
           /* Pretendard 폰트 적용 */
           * {
             font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+          }
+          
+          /* iOS Safari 자동 확대 방지 - input/select/textarea는 최소 16px */
+          input, select, textarea, button {
+            font-size: 16px !important;
           }
           
           /* 이미지 슬라이더 */
