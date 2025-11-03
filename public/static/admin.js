@@ -153,86 +153,86 @@ async function renderDashboard() {
   
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
-      <!-- 헤더 -->
+      <!-- 헤더 - 모바일 최적화 -->
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <i class="fas fa-shield-alt text-2xl text-blue-600"></i>
-            <h1 class="text-2xl font-bold text-gray-800">같이가요 관리자</h1>
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <i class="fas fa-shield-alt text-xl sm:text-2xl text-blue-600"></i>
+            <h1 class="text-lg sm:text-2xl font-bold text-gray-800">같이가요 관리자</h1>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="text-gray-600">
+          <div class="flex items-center gap-2 sm:gap-4">
+            <span class="text-sm sm:text-base text-gray-600 hidden sm:inline">
               <i class="fas fa-user mr-2"></i>${ADMIN_STATE.admin.name}
             </span>
-            <button onclick="logout()" class="text-red-600 hover:text-red-700">
-              <i class="fas fa-sign-out-alt mr-2"></i>로그아웃
+            <button onclick="logout()" class="text-red-600 hover:text-red-700 px-2 py-1 sm:px-3 sm:py-2 text-sm sm:text-base">
+              <i class="fas fa-sign-out-alt sm:mr-2"></i><span class="hidden sm:inline">로그아웃</span>
             </button>
           </div>
         </div>
       </header>
       
       <!-- 메인 컨텐츠 -->
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <!-- 네비게이션 -->
-        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div class="flex gap-4 flex-wrap">
-            <button onclick="renderDashboard()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              <i class="fas fa-chart-line mr-2"></i>대시보드
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <!-- 네비게이션 - 모바일에서 가로 스크롤 -->
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4 sm:mb-6 overflow-x-auto">
+          <div class="flex gap-2 sm:gap-4 min-w-max sm:min-w-0 sm:flex-wrap">
+            <button onclick="renderDashboard()" class="px-3 sm:px-4 py-2 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-chart-line mr-1 sm:mr-2"></i>대시보드
             </button>
-            <button onclick="renderUsersPage()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              <i class="fas fa-users mr-2"></i>사용자 관리
+            <button onclick="renderUsersPage()" class="px-3 sm:px-4 py-2 sm:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-users mr-1 sm:mr-2"></i>사용자
             </button>
-            <button onclick="renderDealsPage()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              <i class="fas fa-tag mr-2"></i>특가할인
+            <button onclick="renderDealsPage()" class="px-3 sm:px-4 py-2 sm:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-tag mr-1 sm:mr-2"></i>특가할인
             </button>
-            <button onclick="renderGatheringsPage()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              <i class="fas fa-calendar mr-2"></i>같이가요
+            <button onclick="renderGatheringsPage()" class="px-3 sm:px-4 py-2 sm:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-calendar mr-1 sm:mr-2"></i>같이가요
             </button>
-            <button onclick="renderApplicationsPage()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              <i class="fas fa-user-friends mr-2"></i>동행 신청
+            <button onclick="renderApplicationsPage()" class="px-3 sm:px-4 py-2 sm:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-user-friends mr-1 sm:mr-2"></i>동행 신청
             </button>
-            <button onclick="renderGroupRequestsPage()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
-              <i class="fas fa-comments mr-2"></i>지인 신청
+            <button onclick="renderGroupRequestsPage()" class="px-3 sm:px-4 py-2 sm:py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 whitespace-nowrap text-sm sm:text-base">
+              <i class="fas fa-comments mr-1 sm:mr-2"></i>지인 신청
             </button>
           </div>
         </div>
         
-        <!-- 통계 카드 -->
-        <div id="stats-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-          <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <i class="fas fa-users text-4xl text-blue-600 mb-3"></i>
-            <div class="text-3xl font-bold text-gray-800" id="stat-users">-</div>
-            <div class="text-gray-600 mt-1">사용자</div>
+        <!-- 통계 카드 - 모바일 최적화 (1열, 작은 화면에서 2열) -->
+        <div id="stats-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 mb-4 sm:mb-6">
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+            <i class="fas fa-users text-2xl sm:text-4xl text-blue-600 mb-2 sm:mb-3"></i>
+            <div class="text-xl sm:text-3xl font-bold text-gray-800" id="stat-users">-</div>
+            <div class="text-xs sm:text-base text-gray-600 mt-1">사용자</div>
           </div>
-          <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <i class="fas fa-tag text-4xl text-green-600 mb-3"></i>
-            <div class="text-3xl font-bold text-gray-800" id="stat-deals">-</div>
-            <div class="text-gray-600 mt-1">특가할인</div>
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+            <i class="fas fa-tag text-2xl sm:text-4xl text-green-600 mb-2 sm:mb-3"></i>
+            <div class="text-xl sm:text-3xl font-bold text-gray-800" id="stat-deals">-</div>
+            <div class="text-xs sm:text-base text-gray-600 mt-1">특가할인</div>
           </div>
-          <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <i class="fas fa-calendar text-4xl text-purple-600 mb-3"></i>
-            <div class="text-3xl font-bold text-gray-800" id="stat-gatherings">-</div>
-            <div class="text-gray-600 mt-1">같이가요</div>
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+            <i class="fas fa-calendar text-2xl sm:text-4xl text-purple-600 mb-2 sm:mb-3"></i>
+            <div class="text-xl sm:text-3xl font-bold text-gray-800" id="stat-gatherings">-</div>
+            <div class="text-xs sm:text-base text-gray-600 mt-1">같이가요</div>
           </div>
-          <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <i class="fas fa-user-friends text-4xl text-orange-600 mb-3"></i>
-            <div class="text-3xl font-bold text-gray-800" id="stat-applications">-</div>
-            <div class="text-gray-600 mt-1">동행 신청</div>
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+            <i class="fas fa-user-friends text-2xl sm:text-4xl text-orange-600 mb-2 sm:mb-3"></i>
+            <div class="text-xl sm:text-3xl font-bold text-gray-800" id="stat-applications">-</div>
+            <div class="text-xs sm:text-base text-gray-600 mt-1">동행</div>
           </div>
-          <div class="bg-white rounded-lg shadow-md p-6 text-center">
-            <i class="fas fa-comments text-4xl text-pink-600 mb-3"></i>
-            <div class="text-3xl font-bold text-gray-800" id="stat-group-requests">-</div>
-            <div class="text-gray-600 mt-1">지인 신청</div>
+          <div class="bg-white rounded-lg shadow-md p-4 sm:p-6 text-center">
+            <i class="fas fa-comments text-2xl sm:text-4xl text-pink-600 mb-2 sm:mb-3"></i>
+            <div class="text-xl sm:text-3xl font-bold text-gray-800" id="stat-group-requests">-</div>
+            <div class="text-xs sm:text-base text-gray-600 mt-1">지인</div>
           </div>
         </div>
         
         <!-- 최근 활동 -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-bold text-gray-800 mb-4">
+        <div class="bg-white rounded-lg shadow-md p-4 sm:p-6">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
             <i class="fas fa-clock mr-2"></i>최근 활동
           </h2>
-          <div id="recent-activities" class="space-y-3">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+          <div id="recent-activities" class="space-y-2 sm:space-y-3">
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -255,23 +255,23 @@ async function loadStats() {
       document.getElementById('stat-applications').textContent = data.stats.applications
       document.getElementById('stat-group-requests').textContent = data.stats.groupRequests
       
-      // 최근 활동 표시
+      // 최근 활동 표시 - 모바일 최적화
       const activitiesHtml = data.recentActivities.map(activity => `
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div class="flex items-center gap-3">
-            <i class="fas fa-calendar text-purple-600"></i>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <i class="fas fa-calendar text-purple-600 text-sm sm:text-base"></i>
             <div>
-              <div class="font-medium text-gray-800">${activity.title}</div>
-              <div class="text-sm text-gray-600">by ${activity.user_name}</div>
+              <div class="font-medium text-gray-800 text-sm sm:text-base">${activity.title}</div>
+              <div class="text-xs sm:text-sm text-gray-600">by ${activity.user_name}</div>
             </div>
           </div>
-          <div class="text-sm text-gray-500">
+          <div class="text-xs sm:text-sm text-gray-500 pl-6 sm:pl-0">
             ${new Date(activity.created_at).toLocaleString('ko-KR')}
           </div>
         </div>
       `).join('')
       
-      document.getElementById('recent-activities').innerHTML = activitiesHtml || '<div class="text-center text-gray-500 py-8">최근 활동이 없습니다</div>'
+      document.getElementById('recent-activities').innerHTML = activitiesHtml || '<div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">최근 활동이 없습니다</div>'
     }
   } catch (error) {
     console.error('통계 로딩 오류:', error)
@@ -288,21 +288,21 @@ async function renderUsersPage() {
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <h1 class="text-lg sm:text-2xl font-bold text-gray-800">
             <i class="fas fa-users mr-2"></i>사용자 관리
           </h1>
         </div>
       </header>
       
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <button onclick="renderDashboard()" class="mb-4 text-blue-600 hover:text-blue-700">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <button onclick="renderDashboard()" class="mb-3 sm:mb-4 text-blue-600 hover:text-blue-700 px-3 py-2 text-sm sm:text-base">
           <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
         </button>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
           <div id="users-list">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -318,49 +318,105 @@ async function loadUsers() {
     const data = await res.json()
     
     if (data.success) {
+      // 모바일: 카드 레이아웃, 데스크톱: 테이블 레이아웃
       const html = `
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-3">ID</th>
-              <th class="text-left p-3">이름</th>
-              <th class="text-left p-3">전화번호</th>
-              <th class="text-left p-3">포스팅</th>
-              <th class="text-left p-3">신청</th>
-              <th class="text-left p-3">가입일</th>
-              <th class="text-left p-3">상태</th>
-              <th class="text-left p-3">관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.users.map(user => `
-              <tr class="border-b hover:bg-gray-50">
-                <td class="p-3">${user.id}</td>
-                <td class="p-3">${user.name}</td>
-                <td class="p-3 font-mono">${user.phone}</td>
-                <td class="p-3">${user.gathering_count}</td>
-                <td class="p-3">${user.application_count}</td>
-                <td class="p-3">${new Date(user.created_at).toLocaleDateString('ko-KR')}</td>
-                <td class="p-3">
+        <!-- 데스크톱 테이블 (768px 이상) -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left p-3">ID</th>
+                <th class="text-left p-3">이름</th>
+                <th class="text-left p-3">전화번호</th>
+                <th class="text-left p-3">포스팅</th>
+                <th class="text-left p-3">신청</th>
+                <th class="text-left p-3">가입일</th>
+                <th class="text-left p-3">상태</th>
+                <th class="text-left p-3">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.users.map(user => `
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-3">${user.id}</td>
+                  <td class="p-3">${user.name}</td>
+                  <td class="p-3 font-mono">${user.phone}</td>
+                  <td class="p-3">${user.gathering_count}</td>
+                  <td class="p-3">${user.application_count}</td>
+                  <td class="p-3">${new Date(user.created_at).toLocaleDateString('ko-KR')}</td>
+                  <td class="p-3">
+                    ${user.blocked_id ? 
+                      '<span class="text-red-600 font-medium">차단됨</span>' : 
+                      '<span class="text-green-600">정상</span>'
+                    }
+                  </td>
+                  <td class="p-3">
+                    ${user.blocked_id ? 
+                      `<button onclick="unblockUser(${user.id})" class="text-green-600 hover:text-green-700">
+                        <i class="fas fa-unlock mr-1"></i>차단 해제
+                      </button>` :
+                      `<button onclick="blockUser(${user.id}, '${user.name}')" class="text-red-600 hover:text-red-700">
+                        <i class="fas fa-ban mr-1"></i>차단
+                      </button>`
+                    }
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 모바일 카드 레이아웃 (768px 미만) -->
+        <div class="md:hidden space-y-3">
+          ${data.users.map(user => `
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <div class="font-bold text-lg text-gray-800">${user.name}</div>
+                  <div class="text-sm font-mono text-gray-600">${user.phone}</div>
+                </div>
+                <div>
                   ${user.blocked_id ? 
-                    '<span class="text-red-600 font-medium">차단됨</span>' : 
-                    '<span class="text-green-600">정상</span>'
+                    '<span class="text-xs px-2 py-1 bg-red-100 text-red-600 rounded">차단됨</span>' : 
+                    '<span class="text-xs px-2 py-1 bg-green-100 text-green-600 rounded">정상</span>'
                   }
-                </td>
-                <td class="p-3">
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                <div class="bg-white rounded p-2">
+                  <div class="text-xs text-gray-500">ID</div>
+                  <div class="font-medium">${user.id}</div>
+                </div>
+                <div class="bg-white rounded p-2">
+                  <div class="text-xs text-gray-500">포스팅</div>
+                  <div class="font-medium">${user.gathering_count}</div>
+                </div>
+                <div class="bg-white rounded p-2">
+                  <div class="text-xs text-gray-500">신청</div>
+                  <div class="font-medium">${user.application_count}</div>
+                </div>
+              </div>
+              
+              <div class="flex justify-between items-center text-sm">
+                <div class="text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>
+                  ${new Date(user.created_at).toLocaleDateString('ko-KR')}
+                </div>
+                <div>
                   ${user.blocked_id ? 
-                    `<button onclick="unblockUser(${user.id})" class="text-green-600 hover:text-green-700">
-                      <i class="fas fa-unlock mr-1"></i>차단 해제
+                    `<button onclick="unblockUser(${user.id})" class="px-3 py-1.5 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                      <i class="fas fa-unlock mr-1"></i>해제
                     </button>` :
-                    `<button onclick="blockUser(${user.id}, '${user.name}')" class="text-red-600 hover:text-red-700">
+                    `<button onclick="blockUser(${user.id}, '${user.name}')" class="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
                       <i class="fas fa-ban mr-1"></i>차단
                     </button>`
                   }
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       `
       
       document.getElementById('users-list').innerHTML = html
@@ -431,26 +487,26 @@ async function renderDealsPage() {
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <h1 class="text-lg sm:text-2xl font-bold text-gray-800">
             <i class="fas fa-tag mr-2"></i>특가할인 관리
           </h1>
         </div>
       </header>
       
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <div class="flex justify-between items-center mb-4">
-          <button onclick="renderDashboard()" class="text-blue-600 hover:text-blue-700">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 sm:mb-4">
+          <button onclick="renderDashboard()" class="text-blue-600 hover:text-blue-700 px-3 py-2 text-sm sm:text-base">
             <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
           </button>
-          <button onclick="showCreateDealModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+          <button onclick="showCreateDealModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 sm:py-2 rounded-lg text-sm sm:text-base">
             <i class="fas fa-plus mr-2"></i>새 특가할인 추가
           </button>
         </div>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
           <div id="deals-list">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -467,18 +523,18 @@ async function loadDeals() {
     
     if (data.success) {
       const html = `
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           ${data.deals.map(deal => `
-            <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow">
-              <img src="${JSON.parse(deal.images)[0]}" alt="${deal.title}" class="w-full h-48 object-cover rounded-lg mb-3">
-              <h3 class="font-bold text-lg mb-2">${deal.title}</h3>
-              ${deal.subtitle ? `<p class="text-gray-600 text-sm mb-2">${deal.subtitle}</p>` : ''}
-              <p class="text-gray-500 text-sm mb-3 line-clamp-2">${deal.content}</p>
+            <div class="border rounded-lg p-3 sm:p-4 hover:shadow-lg transition-shadow">
+              <img src="${JSON.parse(deal.images)[0]}" alt="${deal.title}" class="w-full h-40 sm:h-48 object-cover rounded-lg mb-2 sm:mb-3">
+              <h3 class="font-bold text-base sm:text-lg mb-1 sm:mb-2">${deal.title}</h3>
+              ${deal.subtitle ? `<p class="text-gray-600 text-xs sm:text-sm mb-1 sm:mb-2">${deal.subtitle}</p>` : ''}
+              <p class="text-gray-500 text-xs sm:text-sm mb-2 sm:mb-3 line-clamp-2">${deal.content}</p>
               <div class="flex gap-2">
-                <button onclick="showEditDealModal(${deal.id})" class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded text-sm">
+                <button onclick="showEditDealModal(${deal.id})" class="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 sm:px-3 py-2 rounded text-xs sm:text-sm">
                   <i class="fas fa-edit mr-1"></i>수정
                 </button>
-                <button onclick="deleteDeal(${deal.id})" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-3 py-2 rounded text-sm">
+                <button onclick="deleteDeal(${deal.id})" class="flex-1 bg-red-100 hover:bg-red-200 text-red-700 px-2 sm:px-3 py-2 rounded text-xs sm:text-sm">
                   <i class="fas fa-trash mr-1"></i>삭제
                 </button>
               </div>
@@ -487,7 +543,7 @@ async function loadDeals() {
         </div>
       `
       
-      document.getElementById('deals-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">특가할인이 없습니다</div>'
+      document.getElementById('deals-list').innerHTML = html || '<div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">특가할인이 없습니다</div>'
     }
   } catch (error) {
     console.error('특가할인 목록 로딩 오류:', error)
@@ -497,34 +553,34 @@ async function loadDeals() {
 function showCreateDealModal() {
   const modal = document.createElement('div')
   modal.id = 'create-deal-modal'
-  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+  modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-0 sm:p-4'
   modal.innerHTML = `
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
-      <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-bold">새 특가할인 추가</h2>
-          <button onclick="closeCreateDealModal()" class="text-gray-500 hover:text-gray-700">
-            <i class="fas fa-times text-2xl"></i>
+    <div class="bg-white rounded-none sm:rounded-lg shadow-xl w-full sm:max-w-2xl h-full sm:h-auto sm:m-4 sm:max-h-screen overflow-y-auto">
+      <div class="p-4 sm:p-6">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+          <h2 class="text-xl sm:text-2xl font-bold">새 특가할인 추가</h2>
+          <button onclick="closeCreateDealModal()" class="text-gray-500 hover:text-gray-700 p-2">
+            <i class="fas fa-times text-xl sm:text-2xl"></i>
           </button>
         </div>
         
-        <form onsubmit="submitCreateDeal(event)" class="space-y-4">
+        <form onsubmit="submitCreateDeal(event)" class="space-y-3 sm:space-y-4">
           <div>
             <label class="block text-sm font-medium mb-1">제목 *</label>
             <input type="text" id="create-deal-title" 
-                   class="w-full px-3 py-2 border rounded-lg" required>
+                   class="w-full px-3 py-3 border rounded-lg text-base" required>
           </div>
           
           <div>
             <label class="block text-sm font-medium mb-1">부제목</label>
             <input type="text" id="create-deal-subtitle" 
-                   class="w-full px-3 py-2 border rounded-lg">
+                   class="w-full px-3 py-3 border rounded-lg text-base">
           </div>
           
           <div>
             <label class="block text-sm font-medium mb-1">내용 *</label>
-            <textarea id="create-deal-content" rows="6" 
-                      class="w-full px-3 py-2 border rounded-lg" required></textarea>
+            <textarea id="create-deal-content" rows="4" 
+                      class="w-full px-3 py-3 border rounded-lg text-base" required></textarea>
           </div>
           
           <div>
@@ -532,7 +588,7 @@ function showCreateDealModal() {
               <i class="fas fa-upload mr-1"></i>이미지 파일 업로드 *
             </label>
             <input type="file" id="create-deal-image-files" accept="image/*" multiple
-                   class="w-full px-3 py-2 border rounded-lg" required>
+                   class="w-full px-3 py-3 border rounded-lg text-base" required>
             <p class="text-xs text-gray-500 mt-1">최소 1개 이상의 이미지를 선택하세요</p>
             <div id="create-deal-upload-progress" class="mt-2"></div>
           </div>
@@ -540,34 +596,34 @@ function showCreateDealModal() {
           <div>
             <label class="block text-sm font-medium mb-1">장소명 *</label>
             <input type="text" id="create-deal-place-name" 
-                   class="w-full px-3 py-2 border rounded-lg" required>
+                   class="w-full px-3 py-3 border rounded-lg text-base" required>
           </div>
           
           <div>
             <label class="block text-sm font-medium mb-1">주소 *</label>
             <input type="text" id="create-deal-place-address" 
-                   class="w-full px-3 py-2 border rounded-lg" required>
+                   class="w-full px-3 py-3 border rounded-lg text-base" required>
           </div>
           
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label class="block text-sm font-medium mb-1">위도</label>
               <input type="number" step="any" id="create-deal-place-lat" 
-                     class="w-full px-3 py-2 border rounded-lg">
+                     class="w-full px-3 py-3 border rounded-lg text-base">
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">경도</label>
               <input type="number" step="any" id="create-deal-place-lng" 
-                     class="w-full px-3 py-2 border rounded-lg">
+                     class="w-full px-3 py-3 border rounded-lg text-base">
             </div>
           </div>
           
-          <div class="flex gap-3 pt-4">
-            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+          <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
+            <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
               <i class="fas fa-save mr-2"></i>저장
             </button>
             <button type="button" onclick="closeCreateDealModal()" 
-                    class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+                    class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg text-base">
               취소
             </button>
           </div>
@@ -698,57 +754,57 @@ async function showEditDealModal(dealId) {
     // 모달 생성
     const modal = document.createElement('div')
     modal.id = 'edit-deal-modal'
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-0 sm:p-4'
     modal.innerHTML = `
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">특가할인 수정</h2>
-            <button onclick="closeEditDealModal()" class="text-gray-500 hover:text-gray-700">
-              <i class="fas fa-times text-2xl"></i>
+      <div class="bg-white rounded-none sm:rounded-lg shadow-xl w-full sm:max-w-2xl h-full sm:h-auto sm:m-4 sm:max-h-screen overflow-y-auto">
+        <div class="p-4 sm:p-6">
+          <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-xl sm:text-2xl font-bold">특가할인 수정</h2>
+            <button onclick="closeEditDealModal()" class="text-gray-500 hover:text-gray-700 p-2">
+              <i class="fas fa-times text-xl sm:text-2xl"></i>
             </button>
           </div>
           
-          <form onsubmit="submitEditDeal(event, ${dealId})" class="space-y-4">
+          <form onsubmit="submitEditDeal(event, ${dealId})" class="space-y-3 sm:space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1">제목</label>
               <input type="text" id="edit-deal-title" value="${deal.title.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">부제목</label>
               <input type="text" id="edit-deal-subtitle" value="${(deal.subtitle || '').replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg">
+                     class="w-full px-3 py-3 border rounded-lg text-base">
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">내용</label>
-              <textarea id="edit-deal-content" rows="6" 
-                        class="w-full px-3 py-2 border rounded-lg" required>${deal.content}</textarea>
+              <textarea id="edit-deal-content" rows="4" 
+                        class="w-full px-3 py-3 border rounded-lg text-base" required>${deal.content}</textarea>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">이미지</label>
-              <div class="space-y-3">
+              <div class="space-y-2 sm:space-y-3">
                 <div id="edit-deal-current-images" class="grid grid-cols-3 gap-2">
                   ${images.map((img, idx) => `
                     <div class="relative">
-                      <img src="${img}" class="w-full h-24 object-cover rounded border">
+                      <img src="${img}" class="w-full h-20 sm:h-24 object-cover rounded border">
                       <button type="button" onclick="removeCurrentImage(${idx})" 
-                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs hover:bg-red-600">
+                              class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-7 h-7 sm:w-6 sm:h-6 text-xs hover:bg-red-600">
                         <i class="fas fa-times"></i>
                       </button>
                     </div>
                   `).join('')}
                 </div>
-                <div class="border-t pt-3">
+                <div class="border-t pt-2 sm:pt-3">
                   <label class="block text-sm font-medium mb-2">
                     <i class="fas fa-upload mr-1"></i>이미지 파일 업로드
                   </label>
                   <input type="file" id="edit-deal-image-files" accept="image/*" multiple
                          onchange="previewUploadedImages()"
-                         class="w-full px-3 py-2 border rounded-lg">
+                         class="w-full px-3 py-3 border rounded-lg text-base">
                   <p class="text-xs text-gray-500 mt-1">이미지 파일을 선택하세요 (여러 개 선택 가능)</p>
                   <div id="edit-deal-upload-progress" class="mt-2"></div>
                 </div>
@@ -759,34 +815,34 @@ async function showEditDealModal(dealId) {
             <div>
               <label class="block text-sm font-medium mb-1">장소명</label>
               <input type="text" id="edit-deal-place-name" value="${deal.place_name.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">주소</label>
               <input type="text" id="edit-deal-place-address" value="${deal.place_address.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">위도</label>
                 <input type="number" step="any" id="edit-deal-place-lat" value="${deal.place_lat || ''}" 
-                       class="w-full px-3 py-2 border rounded-lg">
+                       class="w-full px-3 py-3 border rounded-lg text-base">
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">경도</label>
                 <input type="number" step="any" id="edit-deal-place-lng" value="${deal.place_lng || ''}" 
-                       class="w-full px-3 py-2 border rounded-lg">
+                       class="w-full px-3 py-3 border rounded-lg text-base">
               </div>
             </div>
             
-            <div class="flex gap-3 pt-4">
-              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+            <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
+              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
                 <i class="fas fa-save mr-2"></i>저장
               </button>
               <button type="button" onclick="closeEditDealModal()" 
-                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg text-base">
                 취소
               </button>
             </div>
@@ -1056,21 +1112,21 @@ async function renderGatheringsPage() {
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <h1 class="text-lg sm:text-2xl font-bold text-gray-800">
             <i class="fas fa-calendar mr-2"></i>같이가요 관리
           </h1>
         </div>
       </header>
       
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <button onclick="renderDashboard()" class="mb-4 text-blue-600 hover:text-blue-700">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <button onclick="renderDashboard()" class="mb-3 sm:mb-4 text-blue-600 hover:text-blue-700 px-3 py-2 text-sm sm:text-base">
           <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
         </button>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
           <div id="gatherings-list">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -1087,44 +1143,90 @@ async function loadGatherings() {
     
     if (data.success) {
       const html = `
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-3">ID</th>
-              <th class="text-left p-3">제목</th>
-              <th class="text-left p-3">작성자</th>
-              <th class="text-left p-3">장소</th>
-              <th class="text-left p-3">날짜/시간</th>
-              <th class="text-left p-3">인원</th>
-              <th class="text-left p-3">작성일</th>
-              <th class="text-left p-3">관리</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.gatherings.map(g => `
-              <tr class="border-b hover:bg-gray-50">
-                <td class="p-3">${g.id}</td>
-                <td class="p-3">${g.title}</td>
-                <td class="p-3">${g.user_name}</td>
-                <td class="p-3">${g.place_name}</td>
-                <td class="p-3">${g.date_text} ${g.time_text}</td>
-                <td class="p-3">${g.current_people}/${g.max_people}</td>
-                <td class="p-3">${new Date(g.created_at).toLocaleDateString('ko-KR')}</td>
-                <td class="p-3">
-                  <button onclick="showEditGatheringModal(${g.id})" class="text-blue-600 hover:text-blue-700 mr-3">
-                    <i class="fas fa-edit mr-1"></i>수정
-                  </button>
-                  <button onclick="deleteGathering(${g.id})" class="text-red-600 hover:text-red-700">
-                    <i class="fas fa-trash mr-1"></i>삭제
-                  </button>
-                </td>
+        <!-- 데스크톱 테이블 (768px 이상) -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left p-3">ID</th>
+                <th class="text-left p-3">제목</th>
+                <th class="text-left p-3">작성자</th>
+                <th class="text-left p-3">장소</th>
+                <th class="text-left p-3">날짜/시간</th>
+                <th class="text-left p-3">인원</th>
+                <th class="text-left p-3">작성일</th>
+                <th class="text-left p-3">관리</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${data.gatherings.map(g => `
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-3">${g.id}</td>
+                  <td class="p-3">${g.title}</td>
+                  <td class="p-3">${g.user_name}</td>
+                  <td class="p-3">${g.place_name}</td>
+                  <td class="p-3">${g.date_text} ${g.time_text}</td>
+                  <td class="p-3">${g.current_people}/${g.max_people}</td>
+                  <td class="p-3">${new Date(g.created_at).toLocaleDateString('ko-KR')}</td>
+                  <td class="p-3">
+                    <button onclick="showEditGatheringModal(${g.id})" class="text-blue-600 hover:text-blue-700 mr-3">
+                      <i class="fas fa-edit mr-1"></i>수정
+                    </button>
+                    <button onclick="deleteGathering(${g.id})" class="text-red-600 hover:text-red-700">
+                      <i class="fas fa-trash mr-1"></i>삭제
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 모바일 카드 레이아웃 (768px 미만) -->
+        <div class="md:hidden space-y-3">
+          ${data.gatherings.map(g => `
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="flex justify-between items-start mb-2">
+                <div class="flex-1">
+                  <div class="font-bold text-base text-gray-800 mb-1">${g.title}</div>
+                  <div class="text-sm text-gray-600">
+                    <i class="fas fa-user mr-1"></i>${g.user_name}
+                  </div>
+                </div>
+                <div class="text-xs text-gray-500 ml-2">#${g.id}</div>
+              </div>
+              
+              <div class="space-y-1.5 mb-3">
+                <div class="text-sm text-gray-600">
+                  <i class="fas fa-map-marker-alt mr-1 text-red-500"></i>${g.place_name}
+                </div>
+                <div class="text-sm text-gray-600">
+                  <i class="fas fa-clock mr-1 text-blue-500"></i>${g.date_text} ${g.time_text}
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                  <div class="text-gray-600">
+                    <i class="fas fa-users mr-1 text-green-500"></i>${g.current_people}/${g.max_people}명
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    ${new Date(g.created_at).toLocaleDateString('ko-KR')}
+                  </div>
+                </div>
+              </div>
+              
+              <div class="flex gap-2">
+                <button onclick="showEditGatheringModal(${g.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm">
+                  <i class="fas fa-edit mr-1"></i>수정
+                </button>
+                <button onclick="deleteGathering(${g.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
+                  <i class="fas fa-trash mr-1"></i>삭제
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       `
       
-      document.getElementById('gatherings-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">같이가요 포스팅이 없습니다</div>'
+      document.getElementById('gatherings-list').innerHTML = html || '<div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">같이가요 포스팅이 없습니다</div>'
     }
   } catch (error) {
     console.error('같이가요 목록 로딩 오류:', error)
@@ -1147,80 +1249,80 @@ async function showEditGatheringModal(gatheringId) {
     // 모달 생성
     const modal = document.createElement('div')
     modal.id = 'edit-gathering-modal'
-    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto'
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-0 sm:p-4'
     modal.innerHTML = `
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-screen overflow-y-auto">
-        <div class="p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">같이가요 수정</h2>
-            <button onclick="closeEditGatheringModal()" class="text-gray-500 hover:text-gray-700">
-              <i class="fas fa-times text-2xl"></i>
+      <div class="bg-white rounded-none sm:rounded-lg shadow-xl w-full sm:max-w-2xl h-full sm:h-auto sm:m-4 sm:max-h-screen overflow-y-auto">
+        <div class="p-4 sm:p-6">
+          <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 class="text-xl sm:text-2xl font-bold">같이가요 수정</h2>
+            <button onclick="closeEditGatheringModal()" class="text-gray-500 hover:text-gray-700 p-2">
+              <i class="fas fa-times text-xl sm:text-2xl"></i>
             </button>
           </div>
           
-          <form onsubmit="submitEditGathering(event, ${gatheringId})" class="space-y-4">
+          <form onsubmit="submitEditGathering(event, ${gatheringId})" class="space-y-3 sm:space-y-4">
             <div>
               <label class="block text-sm font-medium mb-1">제목</label>
               <input type="text" id="edit-gathering-title" value="${g.title.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">내용</label>
               <textarea id="edit-gathering-content" rows="4" 
-                        class="w-full px-3 py-2 border rounded-lg" required>${g.content}</textarea>
+                        class="w-full px-3 py-3 border rounded-lg text-base" required>${g.content}</textarea>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">날짜</label>
                 <input type="text" id="edit-gathering-date" value="${g.date_text.replace(/"/g, '&quot;')}" 
-                       class="w-full px-3 py-2 border rounded-lg" required>
+                       class="w-full px-3 py-3 border rounded-lg text-base" required>
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">시간</label>
                 <input type="text" id="edit-gathering-time" value="${g.time_text.replace(/"/g, '&quot;')}" 
-                       class="w-full px-3 py-2 border rounded-lg" required>
+                       class="w-full px-3 py-3 border rounded-lg text-base" required>
               </div>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">장소명</label>
               <input type="text" id="edit-gathering-place-name" value="${g.place_name.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">주소</label>
               <input type="text" id="edit-gathering-place-address" value="${g.place_address.replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg" required>
+                     class="w-full px-3 py-3 border rounded-lg text-base" required>
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">현재 참여 인원</label>
                 <input type="number" id="edit-gathering-current-people" value="${g.current_people}" 
-                       class="w-full px-3 py-2 border rounded-lg" min="1" required>
+                       class="w-full px-3 py-3 border rounded-lg text-base" min="1" required>
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">최대 인원</label>
                 <input type="number" id="edit-gathering-max-people" value="${g.max_people}" 
-                       class="w-full px-3 py-2 border rounded-lg" min="2" required>
+                       class="w-full px-3 py-3 border rounded-lg text-base" min="2" required>
               </div>
             </div>
             
             <div>
               <label class="block text-sm font-medium mb-1">질문</label>
               <input type="text" id="edit-gathering-question" value="${(g.question || '').replace(/"/g, '&quot;')}" 
-                     class="w-full px-3 py-2 border rounded-lg">
+                     class="w-full px-3 py-3 border rounded-lg text-base">
             </div>
             
-            <div class="flex gap-3 pt-4">
-              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">
+            <div class="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
+              <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg text-base">
                 <i class="fas fa-save mr-2"></i>저장
               </button>
               <button type="button" onclick="closeEditGatheringModal()" 
-                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg">
+                      class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-3 rounded-lg text-base">
                 취소
               </button>
             </div>
@@ -1318,21 +1420,21 @@ async function renderApplicationsPage() {
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <h1 class="text-lg sm:text-2xl font-bold text-gray-800">
             <i class="fas fa-user-friends mr-2"></i>동행 신청 관리
           </h1>
         </div>
       </header>
       
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <button onclick="renderDashboard()" class="mb-4 text-blue-600 hover:text-blue-700">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <button onclick="renderDashboard()" class="mb-3 sm:mb-4 text-blue-600 hover:text-blue-700 px-3 py-2 text-sm sm:text-base">
           <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
         </button>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
           <div id="applications-list">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -1349,39 +1451,84 @@ async function loadApplications() {
     
     if (data.success) {
       const html = `
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-3">ID</th>
-              <th class="text-left p-3">신청자</th>
-              <th class="text-left p-3">전화번호</th>
-              <th class="text-left p-3">포스팅</th>
-              <th class="text-left p-3">작성자</th>
-              <th class="text-left p-3">작성자 전화</th>
-              <th class="text-left p-3">장소</th>
-              <th class="text-left p-3">날짜/시간</th>
-              <th class="text-left p-3">신청일</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.applications.map(app => `
-              <tr class="border-b hover:bg-gray-50">
-                <td class="p-3">${app.id}</td>
-                <td class="p-3">${app.applicant_name}</td>
-                <td class="p-3 font-mono text-blue-600">${app.applicant_phone}</td>
-                <td class="p-3">${app.gathering_title}</td>
-                <td class="p-3">${app.author_name}</td>
-                <td class="p-3 font-mono text-green-600">${app.author_phone}</td>
-                <td class="p-3">${app.place_name}</td>
-                <td class="p-3">${app.date_text} ${app.time_text}</td>
-                <td class="p-3">${new Date(app.created_at).toLocaleDateString('ko-KR')}</td>
+        <!-- 데스크톱 테이블 (768px 이상) -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left p-3">ID</th>
+                <th class="text-left p-3">신청자</th>
+                <th class="text-left p-3">전화번호</th>
+                <th class="text-left p-3">포스팅</th>
+                <th class="text-left p-3">작성자</th>
+                <th class="text-left p-3">작성자 전화</th>
+                <th class="text-left p-3">장소</th>
+                <th class="text-left p-3">날짜/시간</th>
+                <th class="text-left p-3">신청일</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${data.applications.map(app => `
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-3">${app.id}</td>
+                  <td class="p-3">${app.applicant_name}</td>
+                  <td class="p-3 font-mono text-blue-600">${app.applicant_phone}</td>
+                  <td class="p-3">${app.gathering_title}</td>
+                  <td class="p-3">${app.author_name}</td>
+                  <td class="p-3 font-mono text-green-600">${app.author_phone}</td>
+                  <td class="p-3">${app.place_name}</td>
+                  <td class="p-3">${app.date_text} ${app.time_text}</td>
+                  <td class="p-3">${new Date(app.created_at).toLocaleDateString('ko-KR')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 모바일 카드 레이아웃 (768px 미만) -->
+        <div class="md:hidden space-y-3">
+          ${data.applications.map(app => `
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="flex justify-between items-start mb-3">
+                <div class="font-bold text-base text-gray-800">${app.gathering_title}</div>
+                <div class="text-xs text-gray-500 ml-2">#${app.id}</div>
+              </div>
+              
+              <div class="space-y-2 mb-3">
+                <div class="bg-blue-50 rounded p-2">
+                  <div class="text-xs text-blue-600 font-medium mb-1">
+                    <i class="fas fa-user mr-1"></i>신청자
+                  </div>
+                  <div class="text-sm font-medium">${app.applicant_name}</div>
+                  <div class="text-xs font-mono text-blue-600">${app.applicant_phone}</div>
+                </div>
+                
+                <div class="bg-green-50 rounded p-2">
+                  <div class="text-xs text-green-600 font-medium mb-1">
+                    <i class="fas fa-user-edit mr-1"></i>작성자
+                  </div>
+                  <div class="text-sm font-medium">${app.author_name}</div>
+                  <div class="text-xs font-mono text-green-600">${app.author_phone}</div>
+                </div>
+              </div>
+              
+              <div class="space-y-1 text-sm">
+                <div class="text-gray-600">
+                  <i class="fas fa-map-marker-alt mr-1 text-red-500"></i>${app.place_name}
+                </div>
+                <div class="text-gray-600">
+                  <i class="fas fa-clock mr-1 text-blue-500"></i>${app.date_text} ${app.time_text}
+                </div>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>신청일: ${new Date(app.created_at).toLocaleDateString('ko-KR')}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       `
       
-      document.getElementById('applications-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">동행 신청이 없습니다</div>'
+      document.getElementById('applications-list').innerHTML = html || '<div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">동행 신청이 없습니다</div>'
     }
   } catch (error) {
     console.error('동행 신청 목록 로딩 오류:', error)
@@ -1398,21 +1545,21 @@ async function renderGroupRequestsPage() {
   document.getElementById('app').innerHTML = `
     <div class="min-h-screen bg-gray-100">
       <header class="bg-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-          <h1 class="text-2xl font-bold text-gray-800">
+        <div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <h1 class="text-lg sm:text-2xl font-bold text-gray-800">
             <i class="fas fa-comments mr-2"></i>지인 신청 관리
           </h1>
         </div>
       </header>
       
-      <div class="max-w-7xl mx-auto px-4 py-8">
-        <button onclick="renderDashboard()" class="mb-4 text-blue-600 hover:text-blue-700">
+      <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+        <button onclick="renderDashboard()" class="mb-3 sm:mb-4 text-blue-600 hover:text-blue-700 px-3 py-2 text-sm sm:text-base">
           <i class="fas fa-arrow-left mr-2"></i>대시보드로 돌아가기
         </button>
         
-        <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="bg-white rounded-lg shadow-md p-3 sm:p-6">
           <div id="group-requests-list">
-            <div class="text-center text-gray-500 py-8">로딩 중...</div>
+            <div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">로딩 중...</div>
           </div>
         </div>
       </div>
@@ -1429,43 +1576,84 @@ async function loadGroupRequests() {
     
     if (data.success) {
       const html = `
-        <table class="w-full">
-          <thead>
-            <tr class="border-b">
-              <th class="text-left p-3">ID</th>
-              <th class="text-left p-3">신청자</th>
-              <th class="text-left p-3">전화번호</th>
-              <th class="text-left p-3">특가할인</th>
-              <th class="text-left p-3">장소</th>
-              <th class="text-left p-3">신청일</th>
-              <th class="text-left p-3">상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data.requests.map(req => `
-              <tr class="border-b hover:bg-gray-50">
-                <td class="p-3">${req.id}</td>
-                <td class="p-3">${req.user_name}</td>
-                <td class="p-3 font-mono text-blue-600">${req.user_phone}</td>
-                <td class="p-3">${req.deal_title}</td>
-                <td class="p-3">${req.place_name}</td>
-                <td class="p-3">${new Date(req.created_at).toLocaleDateString('ko-KR')}</td>
-                <td class="p-3">
-                  <span class="px-2 py-1 rounded text-sm ${
-                    req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    req.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
-                  }">
-                    ${req.status === 'pending' ? '대기중' : req.status === 'approved' ? '승인됨' : req.status}
-                  </span>
-                </td>
+        <!-- 데스크톱 테이블 (768px 이상) -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b">
+                <th class="text-left p-3">ID</th>
+                <th class="text-left p-3">신청자</th>
+                <th class="text-left p-3">전화번호</th>
+                <th class="text-left p-3">특가할인</th>
+                <th class="text-left p-3">장소</th>
+                <th class="text-left p-3">신청일</th>
+                <th class="text-left p-3">상태</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${data.requests.map(req => `
+                <tr class="border-b hover:bg-gray-50">
+                  <td class="p-3">${req.id}</td>
+                  <td class="p-3">${req.user_name}</td>
+                  <td class="p-3 font-mono text-blue-600">${req.user_phone}</td>
+                  <td class="p-3">${req.deal_title}</td>
+                  <td class="p-3">${req.place_name}</td>
+                  <td class="p-3">${new Date(req.created_at).toLocaleDateString('ko-KR')}</td>
+                  <td class="p-3">
+                    <span class="px-2 py-1 rounded text-sm ${
+                      req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      req.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }">
+                      ${req.status === 'pending' ? '대기중' : req.status === 'approved' ? '승인됨' : req.status}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 모바일 카드 레이아웃 (768px 미만) -->
+        <div class="md:hidden space-y-3">
+          ${data.requests.map(req => `
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="flex justify-between items-start mb-3">
+                <div>
+                  <div class="font-bold text-base text-gray-800 mb-1">${req.deal_title}</div>
+                  <div class="text-xs text-gray-500">ID: ${req.id}</div>
+                </div>
+                <span class="px-2 py-1 rounded text-xs ${
+                  req.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  req.status === 'approved' ? 'bg-green-100 text-green-800' :
+                  'bg-gray-100 text-gray-800'
+                }">
+                  ${req.status === 'pending' ? '대기중' : req.status === 'approved' ? '승인됨' : req.status}
+                </span>
+              </div>
+              
+              <div class="bg-blue-50 rounded p-2 mb-2">
+                <div class="text-xs text-blue-600 font-medium mb-1">
+                  <i class="fas fa-user mr-1"></i>신청자
+                </div>
+                <div class="text-sm font-medium">${req.user_name}</div>
+                <div class="text-xs font-mono text-blue-600">${req.user_phone}</div>
+              </div>
+              
+              <div class="space-y-1 text-sm">
+                <div class="text-gray-600">
+                  <i class="fas fa-map-marker-alt mr-1 text-red-500"></i>${req.place_name}
+                </div>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>신청일: ${new Date(req.created_at).toLocaleDateString('ko-KR')}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       `
       
-      document.getElementById('group-requests-list').innerHTML = html || '<div class="text-center text-gray-500 py-8">지인 신청이 없습니다</div>'
+      document.getElementById('group-requests-list').innerHTML = html || '<div class="text-center text-gray-500 py-6 sm:py-8 text-sm sm:text-base">지인 신청이 없습니다</div>'
     }
   } catch (error) {
     console.error('지인 신청 목록 로딩 오류:', error)
