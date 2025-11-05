@@ -1036,6 +1036,7 @@ app.post('/api/gatherings/:id/apply', async (c) => {
         u.name as applicant_name,
         u.phone as applicant_phone,
         g.title as gathering_title,
+        g.question as gathering_question,
         g.user_id as author_id,
         author.name as author_name,
         author.phone as author_phone
@@ -1051,6 +1052,7 @@ app.post('/api/gatherings/:id/apply', async (c) => {
         applicant_name: applicantInfo.applicant_name,
         applicant_phone: applicantInfo.applicant_phone,
         gathering_title: applicantInfo.gathering_title,
+        gathering_question: applicantInfo.gathering_question || '',
         author_name: applicantInfo.author_name,
         author_phone: applicantInfo.author_phone,
         answer: answer || '',
@@ -1858,6 +1860,7 @@ async function sendEmailNotification(type: string, data: any, env: any) {
   try {
     const RESEND_API_KEY = env.RESEND_API_KEY || 're_TBVnupir_DGdB7P9GgffTR9aKDQRWNhPe'
     const ADMIN_EMAIL = env.ADMIN_EMAIL || 'gatchigayo2024@gmail.com'
+    const ADMIN_URL = 'https://gatchi-gayo.pages.dev/admin'
     
     let subject = ''
     let html = ''
@@ -1866,44 +1869,96 @@ async function sendEmailNotification(type: string, data: any, env: any) {
       case 'signup':
         subject = '🎉 새로운 회원가입'
         html = `
-          <h2>새로운 회원이 가입했습니다</h2>
-          <p><strong>이름:</strong> ${data.name}</p>
-          <p><strong>전화번호:</strong> ${data.phone}</p>
-          <p><strong>가입일시:</strong> ${data.created_at}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">새로운 회원이 가입했습니다</h2>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>이름:</strong> ${data.name}</p>
+              <p><strong>전화번호:</strong> ${data.phone}</p>
+              <p><strong>가입일시:</strong> ${data.created_at}</p>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <a href="${ADMIN_URL}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                👉 관리자 페이지에서 확인하기
+              </a>
+            </div>
+          </div>
         `
         break
         
       case 'gathering_created':
         subject = '📝 새로운 같이가요 포스팅'
         html = `
-          <h2>새로운 같이가요 포스팅이 작성되었습니다</h2>
-          <p><strong>작성자:</strong> ${data.user_name} (${data.user_phone})</p>
-          <p><strong>제목:</strong> ${data.title}</p>
-          <p><strong>장소:</strong> ${data.place_name}</p>
-          <p><strong>날짜:</strong> ${data.date_text} ${data.time_text}</p>
-          <p><strong>작성일시:</strong> ${data.created_at}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">새로운 같이가요 포스팅이 작성되었습니다</h2>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>작성자:</strong> ${data.user_name} (${data.user_phone})</p>
+              <p><strong>제목:</strong> ${data.title}</p>
+              <p><strong>장소:</strong> ${data.place_name}</p>
+              <p><strong>날짜:</strong> ${data.date_text} ${data.time_text}</p>
+              <p><strong>작성일시:</strong> ${data.created_at}</p>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <a href="${ADMIN_URL}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                👉 관리자 페이지에서 확인하기
+              </a>
+            </div>
+          </div>
         `
         break
         
       case 'gathering_application':
         subject = '👥 새로운 동행 신청'
         html = `
-          <h2>새로운 동행 신청이 발생했습니다</h2>
-          <p><strong>신청자:</strong> ${data.applicant_name} (${data.applicant_phone})</p>
-          <p><strong>포스팅 제목:</strong> ${data.gathering_title}</p>
-          <p><strong>작성자:</strong> ${data.author_name} (${data.author_phone})</p>
-          <p><strong>신청 답변:</strong> ${data.answer || '없음'}</p>
-          <p><strong>신청일시:</strong> ${data.created_at}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">새로운 동행 신청이 발생했습니다</h2>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>신청자:</strong> ${data.applicant_name} (${data.applicant_phone})</p>
+              <p><strong>포스팅 제목:</strong> ${data.gathering_title}</p>
+              <p><strong>작성자:</strong> ${data.author_name} (${data.author_phone})</p>
+              <p><strong>신청일시:</strong> ${data.created_at}</p>
+            </div>
+            ${data.gathering_question || data.answer ? `
+              <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+                <h3 style="color: #92400e; margin-top: 0;">💬 질문 & 답변</h3>
+                ${data.gathering_question ? `
+                  <div style="margin-bottom: 15px;">
+                    <p style="color: #92400e; font-weight: bold; margin-bottom: 5px;">Q. 작성자 질문:</p>
+                    <p style="background-color: white; padding: 10px; border-radius: 4px; margin: 0;">${data.gathering_question}</p>
+                  </div>
+                ` : ''}
+                ${data.answer ? `
+                  <div>
+                    <p style="color: #1e40af; font-weight: bold; margin-bottom: 5px;">A. 신청자 답변:</p>
+                    <p style="background-color: white; padding: 10px; border-radius: 4px; margin: 0; font-style: italic;">"${data.answer}"</p>
+                  </div>
+                ` : '<p style="color: #6b7280; font-style: italic;">답변 없음</p>'}
+              </div>
+            ` : ''}
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <a href="${ADMIN_URL}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                👉 관리자 페이지에서 확인하기
+              </a>
+            </div>
+          </div>
         `
         break
         
       case 'group_chat_request':
         subject = '🎪 지인들과 같이가기 신청'
         html = `
-          <h2>지인들과 같이가기 신청이 발생했습니다</h2>
-          <p><strong>신청자:</strong> ${data.user_name} (${data.user_phone})</p>
-          <p><strong>특가할인:</strong> ${data.deal_title}</p>
-          <p><strong>신청일시:</strong> ${data.created_at}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">지인들과 같이가기 신청이 발생했습니다</h2>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>신청자:</strong> ${data.user_name} (${data.user_phone})</p>
+              <p><strong>특가할인:</strong> ${data.deal_title}</p>
+              <p><strong>신청일시:</strong> ${data.created_at}</p>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <a href="${ADMIN_URL}" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                👉 관리자 페이지에서 확인하기
+              </a>
+            </div>
+          </div>
         `
         break
     }
