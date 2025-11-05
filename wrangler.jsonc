@@ -12,7 +12,9 @@
     "CLOUDINARY_CLOUD_NAME": "dbifhfx6l",
     "CLOUDINARY_UPLOAD_PRESET": "gatchi_gayo",
     "NHN_CLOUD_APP_KEY": "MEmgUhUDsYgp4grA",
-    "NHN_CLOUD_SENDER_PHONE": "07040367411"
+    "NHN_CLOUD_SENDER_PHONE": "07040367411",
+    "RESEND_API_KEY": "re_TBVnupir_DGdB7P9GgffTR9aKDQRWNhPe",
+    "ADMIN_EMAIL": "contact@gatchigayo.com"
   },
   "d1_databases": [
     {
