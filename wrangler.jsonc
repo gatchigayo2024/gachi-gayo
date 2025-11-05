@@ -10,7 +10,9 @@
     "NAVER_MAP_CLIENT_ID": "wj2ya61n2i",
     "NAVER_MAP_CLIENT_SECRET": "pewaagcxRkJv8tjiXRGIIQk19oc7caxyFMnSctog",
     "CLOUDINARY_CLOUD_NAME": "dbifhfx6l",
-    "CLOUDINARY_UPLOAD_PRESET": "gatchi_gayo"
+    "CLOUDINARY_UPLOAD_PRESET": "gatchi_gayo",
+    "NHN_CLOUD_APP_KEY": "MEmgUhUDsYgp4grA",
+    "NHN_CLOUD_SENDER_PHONE": "07040367411"
   },
   "d1_databases": [
     {

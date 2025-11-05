@@ -104,13 +104,13 @@ app.post('/api/sms/send', async (c) => {
     
     // 프로덕션 모드: 실제 SMS 발송
     // NHN Cloud SMS 우선 사용, 없으면 Aligo 사용
-    if (c.env.NHN_SMS_APP_KEY && c.env.NHN_SMS_SENDER) {
+    if (c.env.NHN_CLOUD_APP_KEY && c.env.NHN_CLOUD_SENDER_PHONE) {
       // NHN Cloud SMS 발송
       console.log('📱 NHN Cloud SMS 사용')
       
-      const NHN_APP_KEY = c.env.NHN_SMS_APP_KEY
-      const NHN_SECRET_KEY = c.env.NHN_SMS_SECRET_KEY || ''
-      const NHN_SENDER = c.env.NHN_SMS_SENDER
+      const NHN_APP_KEY = c.env.NHN_CLOUD_APP_KEY
+      const NHN_SECRET_KEY = c.env.NHN_CLOUD_SECRET_KEY || ''
+      const NHN_SENDER = c.env.NHN_CLOUD_SENDER_PHONE
       
       const smsData = {
         body: `[같이가요] 인증번호는 [${code}] 입니다. 3분 이내에 입력해주세요.`,
@@ -237,6 +237,155 @@ app.post('/api/sms/verify', async (c) => {
   } catch (error) {
     console.error('SMS verify error:', error)
     return c.json({ success: false, error: '인증 확인 중 오류가 발생했습니다.' }, 500)
+  }
+})
+
+// ============================================
+// 새로운 인증 API (/api/auth/*)
+// ============================================
+
+// SMS 인증번호 발송 (새 엔드포인트)
+app.post('/api/auth/send-verification', async (c) => {
+  try {
+    const { phone } = await c.req.json()
+    
+    // 전화번호 유효성 검사
+    const normalizedPhone = phone.replace(/[^0-9]/g, '')
+    if (!normalizedPhone || !/^01[0-9]{8,9}$/.test(normalizedPhone)) {
+      return c.json({ success: false, error: '올바른 전화번호를 입력해주세요.' }, 400)
+    }
+    
+    // 6자리 랜덤 인증번호 생성
+    const code = Math.floor(100000 + Math.random() * 900000).toString()
+    
+    // 만료 시간 (3분 후)
+    const expiresAt = Math.floor(Date.now() / 1000) + 180
+    
+    // DB에 인증번호 저장
+    await c.env.DB.prepare(
+      'INSERT INTO sms_verifications (phone, code, expires_at) VALUES (?, ?, ?)'
+    ).bind(normalizedPhone, code, expiresAt).run()
+    
+    // 환경 변수 확인
+    const hasNhnKey = !!c.env.NHN_CLOUD_APP_KEY
+    const hasNhnSender = !!c.env.NHN_CLOUD_SENDER_PHONE
+    
+    console.log('🔍 NHN Cloud 설정:', { hasNhnKey, hasNhnSender })
+    
+    // NHN Cloud SMS 발송
+    if (hasNhnKey && hasNhnSender) {
+      const NHN_APP_KEY = c.env.NHN_CLOUD_APP_KEY
+      const NHN_SECRET_KEY = c.env.NHN_CLOUD_SECRET_KEY || ''
+      const NHN_SENDER = c.env.NHN_CLOUD_SENDER_PHONE
+      
+      const message = `[같이가요] 인증번호는 [${code}]입니다. 3분 이내에 입력해주세요.`
+      
+      const smsData = {
+        body: message,
+        sendNo: NHN_SENDER,
+        recipientList: [
+          {
+            recipientNo: normalizedPhone,
+            internationalRecipientNo: `82${normalizedPhone.substring(1)}`
+          }
+        ]
+      }
+      
+      console.log('📱 NHN Cloud SMS 발송 중:', normalizedPhone)
+      
+      const response = await fetch(
+        `https://api-sms.cloud.toast.com/sms/v3.0/appKeys/${NHN_APP_KEY}/sender/sms`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'X-Secret-Key': NHN_SECRET_KEY
+          },
+          body: JSON.stringify(smsData)
+        }
+      )
+      
+      const result = await response.json()
+      
+      if (result.header?.isSuccessful) {
+        console.log('✅ SMS 발송 성공:', normalizedPhone)
+        return c.json({ 
+          success: true, 
+          expiresAt,
+          verificationId: result.body?.data?.requestId
+        })
+      } else {
+        console.error('❌ SMS 발송 실패:', result)
+        return c.json({ 
+          success: false, 
+          error: result.header?.resultMessage || 'SMS 발송에 실패했습니다.'
+        }, 500)
+      }
+    } else {
+      // 개발 모드: 콘솔에 인증번호 출력
+      console.log('🔧 [개발 모드] 인증번호:', code, '전화번호:', normalizedPhone)
+      return c.json({ 
+        success: true, 
+        expiresAt,
+        devMode: true,
+        devCode: code
+      })
+    }
+  } catch (error) {
+    console.error('Send verification error:', error)
+    return c.json({ 
+      success: false, 
+      error: '인증번호 발송 중 오류가 발생했습니다.' 
+    }, 500)
+  }
+})
+
+// SMS 인증번호 확인 (새 엔드포인트)
+app.post('/api/auth/verify-code', async (c) => {
+  try {
+    const { phone, code } = await c.req.json()
+    
+    if (!phone || !code) {
+      return c.json({ 
+        success: false, 
+        error: '전화번호와 인증번호를 입력해주세요.' 
+      }, 400)
+    }
+    
+    const normalizedPhone = phone.replace(/[^0-9]/g, '')
+    const now = Math.floor(Date.now() / 1000)
+    
+    // DB에서 유효한 인증번호 조회
+    const verification = await c.env.DB.prepare(`
+      SELECT * FROM sms_verifications 
+      WHERE phone = ? 
+        AND code = ? 
+        AND verified = 0 
+        AND expires_at > ?
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `).bind(normalizedPhone, code, now).first()
+    
+    if (!verification) {
+      return c.json({ 
+        success: false, 
+        error: '인증번호가 올바르지 않거나 만료되었습니다.' 
+      }, 400)
+    }
+    
+    // 인증 완료 처리
+    await c.env.DB.prepare(
+      'UPDATE sms_verifications SET verified = 1 WHERE id = ?'
+    ).bind(verification.id).run()
+    
+    console.log('✅ 인증 성공:', normalizedPhone)
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('Verify code error:', error)
+    return c.json({ 
+      success: false, 
+      error: '인증 확인 중 오류가 발생했습니다.' 
+    }, 500)
   }
 })
 
