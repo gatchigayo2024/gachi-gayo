@@ -1857,7 +1857,7 @@ app.get('/api/admin/group-requests', async (c) => {
 async function sendEmailNotification(type: string, data: any, env: any) {
   try {
     const RESEND_API_KEY = env.RESEND_API_KEY || 're_TBVnupir_DGdB7P9GgffTR9aKDQRWNhPe'
-    const ADMIN_EMAIL = env.ADMIN_EMAIL || 'contact@gatchigayo.com'
+    const ADMIN_EMAIL = env.ADMIN_EMAIL || 'gatchigayo2024@gmail.com'
     
     let subject = ''
     let html = ''
