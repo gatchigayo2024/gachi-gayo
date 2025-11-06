@@ -1031,8 +1031,8 @@ function shareDeal(dealId) {
     Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
-        title: `🍽️ ${deal.title}`,
-        description: deal.subtitle || deal.content.substring(0, 100) + '...',
+        title: deal.subtitle || `🍽️ ${deal.title}`,
+        description: `🍽️ ${deal.title}`,
         imageUrl: thumbnailUrl,
         link: {
           mobileWebUrl: `${window.location.origin}/?deal=${dealId}`,
