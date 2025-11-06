@@ -31,6 +31,9 @@ const APP_STATE = {
 function formatDealContent(content) {
   if (!content) return ''
   
+  // 앞뒤 공백 제거
+  content = content.trim()
+  
   // HTML 특수문자 이스케이프 (XSS 방지)
   const escapeHtml = (text) => {
     const map = {
