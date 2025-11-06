@@ -106,8 +106,8 @@ function showPhoneAuth() {
         
         <div class="p-3.5 space-y-3">
           <!-- 안내 메시지 -->
-          <div class="bg-blue-50 rounded-lg p-2.5 flex items-start gap-2">
-            <i class="fas fa-info-circle text-blue-500 text-sm mt-0.5 flex-shrink-0"></i>
+          <div class="bg-blue-50 rounded-lg p-2.5 flex items-center gap-2">
+            <i class="fas fa-info-circle text-blue-500 text-sm flex-shrink-0"></i>
             <p class="text-xs text-blue-800 leading-tight">전화번호 인증으로 간편하게 가입하세요.</p>
           </div>
           
