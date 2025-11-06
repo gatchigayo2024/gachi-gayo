@@ -579,8 +579,12 @@ function showCreateDealModal() {
           
           <div>
             <label class="block text-sm font-medium mb-1">내용 *</label>
-            <textarea id="create-deal-content" rows="4" 
+            <textarea id="create-deal-content" rows="6" 
+                      placeholder="여러 줄 띄우기: 엔터 2-3번&#10;굵은 글씨: **굵게 할 텍스트**&#10;기울임: *기울일 텍스트*"
                       class="w-full px-3 py-3 border rounded-lg text-base" required></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+              💡 팁: 엔터를 여러 번 쳐서 줄 간격을 넓힐 수 있습니다. **텍스트**로 굵게 표시 가능
+            </p>
           </div>
           
           <div>
@@ -798,8 +802,12 @@ async function showEditDealModal(dealId) {
             
             <div>
               <label class="block text-sm font-medium mb-1">내용</label>
-              <textarea id="edit-deal-content" rows="4" 
+              <textarea id="edit-deal-content" rows="6" 
+                        placeholder="여러 줄 띄우기: 엔터 2-3번&#10;굵은 글씨: **굵게 할 텍스트**&#10;기울임: *기울일 텍스트*"
                         class="w-full px-3 py-3 border rounded-lg text-base" required>${deal.content}</textarea>
+              <p class="text-xs text-gray-500 mt-1">
+                💡 팁: 엔터를 여러 번 쳐서 줄 간격을 넓힐 수 있습니다. **텍스트**로 굵게 표시 가능
+              </p>
             </div>
             
             <div>

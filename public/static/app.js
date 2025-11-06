@@ -17,6 +17,47 @@ const APP_STATE = {
   }
 }
 
+// ============================================
+// 유틸리티 함수
+// ============================================
+
+/**
+ * 특가할인 내용 포맷팅
+ * - 줄바꿈 처리 (\n을 <br>로 변환)
+ * - 연속된 줄바꿈은 간격 유지
+ * - **텍스트** -> <strong>텍스트</strong> (굵게)
+ * - *텍스트* -> <em>텍스트</em> (기울임)
+ */
+function formatDealContent(content) {
+  if (!content) return ''
+  
+  // HTML 특수문자 이스케이프 (XSS 방지)
+  const escapeHtml = (text) => {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }
+    return text.replace(/[&<>"']/g, m => map[m])
+  }
+  
+  let formatted = escapeHtml(content)
+  
+  // **굵게** -> <strong>굵게</strong>
+  formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  
+  // *기울임* -> <em>기울임</em> (단, ** 처리 후 남은 것만)
+  formatted = formatted.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
+  
+  // 줄바꿈 처리
+  // 연속된 줄바꿈은 <br> 여러 개로 변환
+  formatted = formatted.replace(/\n/g, '<br>')
+  
+  return formatted
+}
+
 // 로컬 스토리지에서 사용자 정보 로드
 function loadUser() {
   const userStr = localStorage.getItem('user')
@@ -1161,8 +1202,8 @@ function renderDealDetailPanel() {
             <p class="text-lg text-gray-600 mb-2">${deal.title}</p>
             ${deal.subtitle ? `<h1 class="text-3xl font-bold mb-4">${deal.subtitle}</h1>` : ''}
             
-            <div class="prose max-w-none mb-6">
-              ${deal.content.split('\n').map(line => `<p class="mb-2">${line}</p>`).join('')}
+            <div class="prose max-w-none mb-6 whitespace-pre-wrap">
+              ${formatDealContent(deal.content)}
             </div>
             
             <!-- 장소 정보 -->
