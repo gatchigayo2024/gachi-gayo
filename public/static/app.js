@@ -1203,7 +1203,7 @@ function renderDealDetailPanel() {
             </div>
             
             <p class="text-lg text-gray-600 mb-2">${deal.title}</p>
-            ${deal.subtitle ? `<h1 class="text-3xl font-bold mb-4">${deal.subtitle}</h1>` : ''}
+            ${deal.subtitle ? `<h1 class="text-3xl font-bold mb-8">${deal.subtitle}</h1>` : ''}
             
             <div class="prose max-w-none mb-6">
               ${formatDealContent(deal.content)}
