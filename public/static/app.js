@@ -1615,42 +1615,6 @@ function renderGatheringDetailPanel() {
         
         <h1 class="text-2xl font-bold mb-4">${g.title}</h1>
         
-        <!-- 작성자 정보 -->
-        ${g.gender || g.age_group || g.job || g.self_introduction ? `
-          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 mb-4 border-2 border-yellow-200">
-            <h3 class="font-bold text-gray-800 mb-3 flex items-center">
-              <i class="fas fa-user-circle text-yellow-600 mr-2"></i>
-              작성자 정보
-            </h3>
-            <div class="space-y-2 text-sm">
-              ${g.gender ? `
-                <div class="flex items-center">
-                  <span class="font-medium text-gray-600 w-20">성별:</span>
-                  <span class="text-gray-800">${g.gender}</span>
-                </div>
-              ` : ''}
-              ${g.age_group ? `
-                <div class="flex items-center">
-                  <span class="font-medium text-gray-600 w-20">연령대:</span>
-                  <span class="text-gray-800">${g.age_group}</span>
-                </div>
-              ` : ''}
-              ${g.job ? `
-                <div class="flex items-center">
-                  <span class="font-medium text-gray-600 w-20">직업:</span>
-                  <span class="text-gray-800">${g.job}</span>
-                </div>
-              ` : ''}
-              ${g.self_introduction ? `
-                <div>
-                  <span class="font-medium text-gray-600">자기소개:</span>
-                  <p class="mt-1 text-gray-800 bg-white rounded p-2">${g.self_introduction}</p>
-                </div>
-              ` : ''}
-            </div>
-          </div>
-        ` : ''}
-        
         <div class="bg-gray-50 rounded-lg p-4 mb-4">
           <div class="mb-2">
             <i class="fas fa-calendar text-blue-500 w-5"></i>
@@ -1670,6 +1634,46 @@ function renderGatheringDetailPanel() {
           <h3 class="font-bold mb-2">내용</h3>
           <div class="text-gray-700 whitespace-pre-wrap">${g.content}</div>
         </div>
+        
+        <!-- 작성자 정보 -->
+        ${g.gender || g.age_group || g.job || g.self_introduction ? `
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 mb-6 border-2 border-yellow-200">
+            <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-user-circle text-yellow-600 mr-2"></i>
+              작성자 정보
+            </h3>
+            <div class="space-y-2 text-sm">
+              ${g.gender || g.age_group ? `
+                <div class="flex items-center gap-6">
+                  ${g.gender ? `
+                    <div class="flex items-center">
+                      <span class="font-medium text-gray-600">성별</span>
+                      <span class="ml-2 text-gray-800">${g.gender}</span>
+                    </div>
+                  ` : ''}
+                  ${g.age_group ? `
+                    <div class="flex items-center">
+                      <span class="font-medium text-gray-600">연령대</span>
+                      <span class="ml-2 text-gray-800">${g.age_group}</span>
+                    </div>
+                  ` : ''}
+                </div>
+              ` : ''}
+              ${g.job ? `
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-600">직업</span>
+                  <span class="ml-2 text-gray-800">${g.job}</span>
+                </div>
+              ` : ''}
+              ${g.self_introduction ? `
+                <div>
+                  <span class="font-medium text-gray-600">자기소개</span>
+                  <p class="mt-1 text-gray-800 bg-white rounded p-2">${g.self_introduction}</p>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
         
         <div class="bg-gray-50 rounded-lg p-4 mb-6">
           <h3 class="font-bold mb-2"><i class="fas fa-map-marker-alt text-red-500"></i> 장소</h3>
