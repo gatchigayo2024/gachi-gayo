@@ -1195,6 +1195,7 @@ async function loadGatherings() {
                 <th class="text-left p-3">장소</th>
                 <th class="text-left p-3">날짜/시간</th>
                 <th class="text-left p-3">인원</th>
+                <th class="text-left p-3">모집 상태</th>
                 <th class="text-left p-3">작성일</th>
                 <th class="text-left p-3">관리</th>
               </tr>
@@ -1208,6 +1209,12 @@ async function loadGatherings() {
                   <td class="p-3">${g.place_name}</td>
                   <td class="p-3">${g.date_text} ${g.time_text}</td>
                   <td class="p-3">${g.current_people}/${g.max_people}</td>
+                  <td class="p-3">
+                    <select onchange="updateGatheringStatus(${g.id}, this.value)" class="border rounded px-2 py-1 text-sm ${g.status === 'open' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'}">
+                      <option value="open" ${g.status === 'open' ? 'selected' : ''}>모집 중</option>
+                      <option value="closed" ${g.status === 'closed' ? 'selected' : ''}>모집 완료</option>
+                    </select>
+                  </td>
                   <td class="p-3">${new Date(g.created_at).toLocaleDateString('ko-KR')}</td>
                   <td class="p-3">
                     <button onclick="showEditGatheringModal(${g.id})" class="text-blue-600 hover:text-blue-700 mr-3">
@@ -1251,6 +1258,13 @@ async function loadGatherings() {
                   <div class="text-xs text-gray-500">
                     ${new Date(g.created_at).toLocaleDateString('ko-KR')}
                   </div>
+                </div>
+                <div class="pt-2">
+                  <label class="text-xs text-gray-500 block mb-1">모집 상태</label>
+                  <select onchange="updateGatheringStatus(${g.id}, this.value)" class="w-full border rounded px-2 py-1.5 text-sm ${g.status === 'open' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'}">
+                    <option value="open" ${g.status === 'open' ? 'selected' : ''}>모집 중</option>
+                    <option value="closed" ${g.status === 'closed' ? 'selected' : ''}>모집 완료</option>
+                  </select>
                 </div>
               </div>
               
@@ -1737,5 +1751,36 @@ async function loadGroupRequests() {
     }
   } catch (error) {
     console.error('지인 신청 목록 로딩 오류:', error)
+  }
+}
+
+// 같이가요 모집 상태 업데이트
+async function updateGatheringStatus(gatheringId, newStatus) {
+  try {
+    console.log('📝 같이가요 모집 상태 변경:', { gatheringId, newStatus })
+    
+    const res = await fetch(`/api/gatherings/${gatheringId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+    
+    const data = await res.json()
+    
+    if (data.success) {
+      alert(newStatus === 'open' ? '모집 중으로 변경되었습니다.' : '모집 완료로 변경되었습니다.')
+      // 목록 새로고침
+      loadGatherings()
+    } else {
+      console.error('❌ 상태 변경 실패:', data.error)
+      alert('상태 변경에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
+      // 목록 새로고침하여 이전 상태로 복원
+      loadGatherings()
+    }
+  } catch (error) {
+    console.error('❌ 같이가요 상태 변경 중 오류:', error)
+    alert('상태 변경 중 오류가 발생했습니다: ' + error.message)
+    // 목록 새로고침하여 이전 상태로 복원
+    loadGatherings()
   }
 }

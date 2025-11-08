@@ -1024,6 +1024,51 @@ app.put('/api/gatherings/:id', async (c) => {
   }
 })
 
+// 같이가요 모집 상태 업데이트 (관리자용)
+app.put('/api/gatherings/:id/status', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const { status } = await c.req.json()
+    
+    console.log('📝 같이가요 상태 업데이트:', { id, status })
+    
+    // 상태 값 유효성 검증
+    if (status !== 'open' && status !== 'closed') {
+      return c.json({ 
+        success: false, 
+        error: 'Invalid status value. Must be "open" or "closed"' 
+      }, 400)
+    }
+    
+    // 상태 업데이트
+    await c.env.DB.prepare(
+      'UPDATE gatherings SET status = ? WHERE id = ?'
+    ).bind(status, id).run()
+    
+    // 업데이트된 데이터 조회
+    const updated = await c.env.DB.prepare(
+      'SELECT * FROM gatherings WHERE id = ?'
+    ).bind(id).first()
+    
+    if (!updated) {
+      return c.json({ 
+        success: false, 
+        error: 'Gathering not found' 
+      }, 404)
+    }
+    
+    console.log('✅ 같이가요 상태 업데이트 완료:', updated)
+    return c.json({ success: true, gathering: updated })
+  } catch (error) {
+    console.error('❌ 같이가요 상태 업데이트 오류:', error)
+    return c.json({ 
+      success: false, 
+      error: 'Failed to update status',
+      details: error.message 
+    }, 500)
+  }
+})
+
 // 같이가요 포스팅 삭제
 app.delete('/api/gatherings/:id', async (c) => {
   try {
