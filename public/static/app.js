@@ -2828,17 +2828,17 @@ async function deleteGathering(id) {
     console.log('🗑️ 같이가요 삭제 응답:', data)
     
     if (data.success) {
-      alert('삭제되었습니다')
-      
       // 상세 화면 닫기
       closeGatheringDetail()
       
       // 특가할인 상세에서 삭제한 경우
-      if (dealId && APP_STATE.selectedDeal) {
+      if (dealId) {
         // 특가할인 상세의 같이가요 목록 업데이트
         await updateDealGatheringsList(dealId)
+        alert('삭제되었습니다')
       } else {
         // 독립 포스팅이거나 MY 페이지에서 삭제한 경우
+        alert('삭제되었습니다')
         showMyGatherings()
       }
     } else {
