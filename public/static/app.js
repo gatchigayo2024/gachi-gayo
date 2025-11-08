@@ -1642,34 +1642,29 @@ function renderGatheringDetailPanel() {
               <i class="fas fa-user-circle text-yellow-600 mr-2"></i>
               작성자 정보
             </h3>
-            <div class="space-y-2 text-sm">
-              ${g.gender || g.age_group ? `
-                <div class="flex items-center gap-6">
-                  ${g.gender ? `
-                    <div class="flex items-center">
-                      <span class="font-medium text-gray-600">성별</span>
-                      <span class="ml-2 text-gray-800">${g.gender}</span>
-                    </div>
-                  ` : ''}
-                  ${g.age_group ? `
-                    <div class="flex items-center">
-                      <span class="font-medium text-gray-600">연령대</span>
-                      <span class="ml-2 text-gray-800">${g.age_group}</span>
-                    </div>
-                  ` : ''}
-                </div>
-              ` : ''}
-              ${g.job ? `
-                <div class="flex items-center">
-                  <span class="font-medium text-gray-600">직업</span>
-                  <span class="ml-2 text-gray-800">${g.job}</span>
-                </div>
-              ` : ''}
+            <div class="text-sm">
+              <div class="flex items-center gap-6">
+                ${g.gender ? `
+                  <div class="flex items-center">
+                    <span class="font-medium text-gray-600">성별</span>
+                    <span class="ml-2 text-gray-800">${g.gender}</span>
+                  </div>
+                ` : ''}
+                ${g.age_group ? `
+                  <div class="flex items-center">
+                    <span class="font-medium text-gray-600">연령대</span>
+                    <span class="ml-2 text-gray-800">${g.age_group}</span>
+                  </div>
+                ` : ''}
+                ${g.job ? `
+                  <div class="flex items-center">
+                    <span class="font-medium text-gray-600">직업</span>
+                    <span class="ml-2 text-gray-800">${g.job}</span>
+                  </div>
+                ` : ''}
+              </div>
               ${g.self_introduction ? `
-                <div>
-                  <span class="font-medium text-gray-600">자기소개</span>
-                  <p class="mt-1 text-gray-800 bg-white rounded p-2">${g.self_introduction}</p>
-                </div>
+                <p class="mt-3 text-gray-800 bg-white rounded p-2">${g.self_introduction}</p>
               ` : ''}
             </div>
           </div>
@@ -1880,8 +1875,8 @@ function showCreateGatheringModal() {
                 </div>
                 
                 <div>
-                  <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span></label>
-                  <input type="text" id="modal-job" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생, 프리랜서 등">
+                  <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(최대 10자)</span></label>
+                  <input type="text" id="modal-job" required maxlength="10" class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생 등">
                 </div>
                 
                 <div>
@@ -2200,8 +2195,8 @@ function showCreateGathering() {
               </div>
               
               <div>
-                <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span></label>
-                <input type="text" name="job" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생, 프리랜서 등">
+                <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(최대 10자)</span></label>
+                <input type="text" name="job" required maxlength="10" class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생 등">
               </div>
               
               <div>
