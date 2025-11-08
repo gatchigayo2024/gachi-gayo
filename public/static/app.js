@@ -1889,8 +1889,8 @@ function showCreateGatheringModal() {
             
             <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
               <p class="mb-2"><strong>안내 사항</strong></p>
-              <p class="mb-1">1. 동행 신청자가 발생하면 같이가요 1:1 채팅방에서 정보를 알려드리고, 수락/거절 여부를 선택하실 수 있어요</p>
-              <p>2. 동행 수락된 유저들과의 단톡방에서 관리자가 일정 예약과 결제 관련 사항들을 안내해드려요</p>
+              <p class="mb-1">1. 동행 신청자가 발생하면 문자로 정보를 알려드리고 수락/거절 여부를 선택하실 수 있어요</p>
+              <p>2. 동행 수락된 유저들과의 단톡방에서 관리자가 장소 예약과 결제 관련 사항들을 안내해드려요</p>
             </div>
             
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
@@ -2209,8 +2209,8 @@ function showCreateGathering() {
           
           <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
             <p class="mb-2"><strong>안내 사항</strong></p>
-            <p class="mb-1">1. 동행 신청자가 발생하면 같이가요 1:1 채팅방에서 정보를 알려드리고, 수락/거절 여부를 선택하실 수 있어요</p>
-            <p>2. 동행 수락된 유저들과의 단톡방에서 관리자가 일정 예약과 결제 관련 사항들을 안내해드려요</p>
+            <p class="mb-1">1. 동행 신청자가 발생하면 문자로 정보를 알려드리고 수락/거절 여부를 선택하실 수 있어요</p>
+            <p>2. 동행 수락된 유저들과의 단톡방에서 관리자가 장소 예약과 결제 관련 사항들을 안내해드려요</p>
           </div>
           
           <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
