@@ -11,8 +11,8 @@ app.use('/api/*', cors())
 // 정적 파일 서빙
 app.use('/static/*', serveStatic({ root: './public' }))
 
-// 관리자 페이지 라우트
-app.get('/admin', (c) => {
+// 관리자 페이지 라우트 (both /admin and /admin.html)
+const adminHtml = (c: any) => {
   return c.html(`
     <!DOCTYPE html>
     <html lang="ko">
@@ -44,7 +44,10 @@ app.get('/admin', (c) => {
     </body>
     </html>
   `)
-})
+}
+
+app.get('/admin', adminHtml)
+app.get('/admin.html', adminHtml)
 
 // ============================================
 // API 라우트
