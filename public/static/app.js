@@ -2814,6 +2814,11 @@ async function deleteGathering(id) {
   try {
     console.log('🗑️ 같이가요 삭제 요청:', { gathering_id: id })
     
+    // 삭제 전에 포스팅 정보를 가져와서 특가할인 연결 여부 확인
+    const gatheringRes = await fetch(`/api/gatherings/${id}`)
+    const gatheringData = await gatheringRes.json()
+    const dealId = gatheringData.success ? gatheringData.gathering.special_deal_id : null
+    
     const res = await fetch(`/api/gatherings/${id}`, { 
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' }
@@ -2824,7 +2829,18 @@ async function deleteGathering(id) {
     
     if (data.success) {
       alert('삭제되었습니다')
-      showMyGatherings()
+      
+      // 상세 화면 닫기
+      closeGatheringDetail()
+      
+      // 특가할인 상세에서 삭제한 경우
+      if (dealId && APP_STATE.selectedDeal) {
+        // 특가할인 상세의 같이가요 목록 업데이트
+        await updateDealGatheringsList(dealId)
+      } else {
+        // 독립 포스팅이거나 MY 페이지에서 삭제한 경우
+        showMyGatherings()
+      }
     } else {
       console.error('❌ 삭제 실패:', data.error)
       alert('삭제에 실패했습니다: ' + (data.error || '알 수 없는 오류'))
