@@ -2837,9 +2837,20 @@ async function deleteGathering(id) {
         await updateDealGatheringsList(dealId)
         alert('삭제되었습니다')
       } else {
-        // 독립 포스팅이거나 MY 페이지에서 삭제한 경우
+        // 독립 포스팅 삭제: 현재 페이지에 따라 목록 새로고침
         alert('삭제되었습니다')
-        showMyGatherings()
+        
+        // 현재 페이지 새로고침
+        if (APP_STATE.currentPage === 'gatherings') {
+          // 같이가요 목록 페이지
+          await renderGatheringsPage()
+        } else if (APP_STATE.currentPage === 'my-gatherings') {
+          // 내가 작성한 같이가요 페이지
+          showMyGatherings()
+        } else {
+          // 기본: 내가 작성한 같이가요로 이동
+          showMyGatherings()
+        }
       }
     } else {
       console.error('❌ 삭제 실패:', data.error)
