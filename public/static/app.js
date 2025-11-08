@@ -1615,6 +1615,42 @@ function renderGatheringDetailPanel() {
         
         <h1 class="text-2xl font-bold mb-4">${g.title}</h1>
         
+        <!-- 작성자 정보 -->
+        ${g.gender || g.age_group || g.job || g.self_introduction ? `
+          <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 mb-4 border-2 border-yellow-200">
+            <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+              <i class="fas fa-user-circle text-yellow-600 mr-2"></i>
+              작성자 정보
+            </h3>
+            <div class="space-y-2 text-sm">
+              ${g.gender ? `
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-600 w-20">성별:</span>
+                  <span class="text-gray-800">${g.gender}</span>
+                </div>
+              ` : ''}
+              ${g.age_group ? `
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-600 w-20">연령대:</span>
+                  <span class="text-gray-800">${g.age_group}</span>
+                </div>
+              ` : ''}
+              ${g.job ? `
+                <div class="flex items-center">
+                  <span class="font-medium text-gray-600 w-20">직업:</span>
+                  <span class="text-gray-800">${g.job}</span>
+                </div>
+              ` : ''}
+              ${g.self_introduction ? `
+                <div>
+                  <span class="font-medium text-gray-600">자기소개:</span>
+                  <p class="mt-1 text-gray-800 bg-white rounded p-2">${g.self_introduction}</p>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+        
         <div class="bg-gray-50 rounded-lg p-4 mb-4">
           <div class="mb-2">
             <i class="fas fa-calendar text-blue-500 w-5"></i>
@@ -1806,6 +1842,52 @@ function showCreateGatheringModal() {
               <input type="text" id="modal-question" class="w-full border rounded-lg px-3 py-2" placeholder="예: 간단하게 자기소개를 해주실 수 있을까요?">
             </div>
             
+            <!-- 작성자 정보 -->
+            <div class="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+              <h3 class="font-bold text-gray-800 mb-3">
+                <i class="fas fa-user-circle mr-1"></i>작성자 정보
+              </h3>
+              
+              <div class="space-y-3">
+                <div>
+                  <label class="block font-medium mb-1 text-sm">성별 <span class="text-red-500">*</span></label>
+                  <div class="flex gap-3">
+                    <label class="flex items-center cursor-pointer">
+                      <input type="radio" name="author-gender" value="남" required class="mr-2">
+                      <span>남</span>
+                    </label>
+                    <label class="flex items-center cursor-pointer">
+                      <input type="radio" name="author-gender" value="여" required class="mr-2">
+                      <span>여</span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block font-medium mb-1 text-sm">연령대 <span class="text-red-500">*</span></label>
+                  <select id="modal-age-group" required class="w-full border rounded-lg px-3 py-2">
+                    <option value="">선택하세요</option>
+                    <option value="20대">20대</option>
+                    <option value="30대">30대</option>
+                    <option value="40대">40대</option>
+                    <option value="50대">50대</option>
+                    <option value="60대 이상">60대 이상</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span></label>
+                  <input type="text" id="modal-job" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생, 프리랜서 등">
+                </div>
+                
+                <div>
+                  <label class="block font-medium mb-1 text-sm">자기소개 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(20자 이상)</span></label>
+                  <textarea id="modal-self-intro" required rows="3" class="w-full border rounded-lg px-3 py-2" placeholder="같이 갈 사람들에게 자신을 소개해주세요 (최소 20자)"></textarea>
+                  <p class="text-xs text-gray-500 mt-1">현재: <span id="intro-char-count">0</span>자</p>
+                </div>
+              </div>
+            </div>
+            
             <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
               <p class="mb-2"><strong>안내 사항</strong></p>
               <p class="mb-1">1. 동행 신청자가 발생하면 같이가요 1:1 채팅방에서 정보를 알려드리고, 수락/거절 여부를 선택하실 수 있어요</p>
@@ -1822,6 +1904,25 @@ function showCreateGatheringModal() {
   `
   
   document.body.insertAdjacentHTML('beforeend', html)
+  
+  // 자기소개 글자 수 카운터
+  const selfIntroInput = document.getElementById('modal-self-intro')
+  const charCount = document.getElementById('intro-char-count')
+  
+  if (selfIntroInput && charCount) {
+    selfIntroInput.addEventListener('input', () => {
+      const length = selfIntroInput.value.length
+      charCount.textContent = length
+      
+      if (length < 20) {
+        charCount.classList.add('text-red-500')
+        charCount.classList.remove('text-green-600')
+      } else {
+        charCount.classList.add('text-green-600')
+        charCount.classList.remove('text-red-500')
+      }
+    })
+  }
 }
 
 function closeCreateGatheringModal() {
@@ -1933,6 +2034,32 @@ async function submitIndependentGathering(e) {
     return
   }
   
+  // 작성자 정보 유효성 검증
+  const gender = document.querySelector('input[name="author-gender"]:checked')?.value
+  const ageGroup = document.getElementById('modal-age-group').value
+  const job = document.getElementById('modal-job').value
+  const selfIntro = document.getElementById('modal-self-intro').value
+  
+  if (!gender) {
+    alert('성별을 선택해주세요.')
+    return
+  }
+  
+  if (!ageGroup) {
+    alert('연령대를 선택해주세요.')
+    return
+  }
+  
+  if (!job || job.trim().length === 0) {
+    alert('직업을 입력해주세요.')
+    return
+  }
+  
+  if (!selfIntro || selfIntro.trim().length < 20) {
+    alert('자기소개를 20자 이상 입력해주세요.')
+    return
+  }
+  
   try {
     const data = {
       user_id: APP_STATE.currentUser.id,
@@ -1946,7 +2073,11 @@ async function submitIndependentGathering(e) {
       place_lat: parseFloat(document.getElementById('modal-place-lat').value),
       place_lng: parseFloat(document.getElementById('modal-place-lng').value),
       max_people: parseInt(document.getElementById('modal-max-people').value),
-      question: document.getElementById('modal-question').value || null
+      question: document.getElementById('modal-question').value || null,
+      gender: gender,
+      age_group: ageGroup,
+      job: job.trim(),
+      self_introduction: selfIntro.trim()
     }
     
     console.log('📝 독립 같이가요 작성 요청:', data)
@@ -2031,6 +2162,52 @@ function showCreateGathering() {
             <input type="text" name="question" class="w-full border rounded-lg px-3 py-2" placeholder="예: 간단하게 자기소개를 해주실 수 있을까요?">
           </div>
           
+          <!-- 작성자 정보 -->
+          <div class="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+            <h3 class="font-bold text-gray-800 mb-3">
+              <i class="fas fa-user-circle mr-1"></i>작성자 정보
+            </h3>
+            
+            <div class="space-y-3">
+              <div>
+                <label class="block font-medium mb-1 text-sm">성별 <span class="text-red-500">*</span></label>
+                <div class="flex gap-3">
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" name="author-gender" value="남" required class="mr-2">
+                    <span>남</span>
+                  </label>
+                  <label class="flex items-center cursor-pointer">
+                    <input type="radio" name="author-gender" value="여" required class="mr-2">
+                    <span>여</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-1 text-sm">연령대 <span class="text-red-500">*</span></label>
+                <select name="age_group" required class="w-full border rounded-lg px-3 py-2">
+                  <option value="">선택하세요</option>
+                  <option value="20대">20대</option>
+                  <option value="30대">30대</option>
+                  <option value="40대">40대</option>
+                  <option value="50대">50대</option>
+                  <option value="60대 이상">60대 이상</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span></label>
+                <input type="text" name="job" required class="w-full border rounded-lg px-3 py-2" placeholder="예: 직장인, 학생, 프리랜서 등">
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-1 text-sm">자기소개 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(20자 이상)</span></label>
+                <textarea name="self_introduction" required rows="3" class="w-full border rounded-lg px-3 py-2" placeholder="같이 갈 사람들에게 자신을 소개해주세요 (최소 20자)"></textarea>
+                <p class="text-xs text-gray-500 mt-1">현재: <span id="deal-intro-char-count">0</span>자</p>
+              </div>
+            </div>
+          </div>
+          
           <div class="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
             <p class="mb-2"><strong>안내 사항</strong></p>
             <p class="mb-1">1. 동행 신청자가 발생하면 같이가요 1:1 채팅방에서 정보를 알려드리고, 수락/거절 여부를 선택하실 수 있어요</p>
@@ -2046,6 +2223,25 @@ function showCreateGathering() {
   `
   
   document.body.insertAdjacentHTML('beforeend', html)
+  
+  // 자기소개 글자 수 카운터 (특가할인 폼용)
+  const selfIntroInput = document.querySelector('textarea[name="self_introduction"]')
+  const charCount = document.getElementById('deal-intro-char-count')
+  
+  if (selfIntroInput && charCount) {
+    selfIntroInput.addEventListener('input', () => {
+      const length = selfIntroInput.value.length
+      charCount.textContent = length
+      
+      if (length < 20) {
+        charCount.classList.add('text-red-500')
+        charCount.classList.remove('text-green-600')
+      } else {
+        charCount.classList.add('text-green-600')
+        charCount.classList.remove('text-red-500')
+      }
+    })
+  }
 }
 
 function closeCreateGathering() {
@@ -2059,6 +2255,32 @@ async function submitGathering(e) {
     const formData = new FormData(e.target)
     const deal = APP_STATE.selectedDeal
     
+    // 작성자 정보 유효성 검증
+    const gender = formData.get('author-gender')
+    const ageGroup = formData.get('age_group')
+    const job = formData.get('job')
+    const selfIntro = formData.get('self_introduction')
+    
+    if (!gender) {
+      alert('성별을 선택해주세요.')
+      return
+    }
+    
+    if (!ageGroup) {
+      alert('연령대를 선택해주세요.')
+      return
+    }
+    
+    if (!job || job.trim().length === 0) {
+      alert('직업을 입력해주세요.')
+      return
+    }
+    
+    if (!selfIntro || selfIntro.trim().length < 20) {
+      alert('자기소개를 20자 이상 입력해주세요.')
+      return
+    }
+    
     const data = {
       user_id: APP_STATE.currentUser.id,
       special_deal_id: deal.id,
@@ -2071,7 +2293,11 @@ async function submitGathering(e) {
       place_lat: deal.place_lat || null,
       place_lng: deal.place_lng || null,
       max_people: parseInt(formData.get('max_people')),
-      question: formData.get('question')
+      question: formData.get('question'),
+      gender: gender,
+      age_group: ageGroup,
+      job: job.trim(),
+      self_introduction: selfIntro.trim()
     }
     
     console.log('📝 같이가요 작성 요청:', data)

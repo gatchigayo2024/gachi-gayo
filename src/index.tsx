@@ -871,10 +871,25 @@ app.post('/api/gatherings', async (c) => {
       place_name: data.place_name
     })
     
+    // 작성자 정보 유효성 검증
+    if (!data.gender || !data.age_group || !data.job || !data.self_introduction) {
+      return c.json({ 
+        success: false, 
+        error: 'Missing required author information' 
+      }, 400)
+    }
+    
+    if (data.self_introduction.trim().length < 20) {
+      return c.json({ 
+        success: false, 
+        error: 'Self introduction must be at least 20 characters' 
+      }, 400)
+    }
+    
     const result = await c.env.DB.prepare(`
       INSERT INTO gatherings 
-      (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, place_lat, place_lng, max_people, question)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (user_id, special_deal_id, title, content, date_text, time_text, place_name, place_address, place_lat, place_lng, max_people, question, gender, age_group, job, self_introduction)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       data.user_id,
       data.special_deal_id || null,
@@ -887,7 +902,11 @@ app.post('/api/gatherings', async (c) => {
       data.place_lat || null,
       data.place_lng || null,
       data.max_people || 4,
-      data.question || ''
+      data.question || '',
+      data.gender,
+      data.age_group,
+      data.job.trim(),
+      data.self_introduction.trim()
     ).run()
 
     console.log('✅ 같이가요 생성 성공, ID:', result.meta.last_row_id)
