@@ -952,19 +952,67 @@ app.put('/api/gatherings/:id', async (c) => {
     const id = c.req.param('id')
     const data = await c.req.json()
     
-    await c.env.DB.prepare(`
-      UPDATE gatherings 
-      SET title = ?, content = ?, date_text = ?, time_text = ?, max_people = ?, question = ?
-      WHERE id = ?
-    `).bind(
-      data.title,
-      data.content,
-      data.date_text,
-      data.time_text,
-      data.max_people,
-      data.question,
-      id
-    ).run()
+    // 작성자 정보 유효성 검증
+    if (!data.gender || !data.age_group || !data.job || !data.self_introduction) {
+      return c.json({ 
+        success: false, 
+        error: 'Missing required author information' 
+      }, 400)
+    }
+    
+    if (data.self_introduction.trim().length < 20) {
+      return c.json({ 
+        success: false, 
+        error: 'Self introduction must be at least 20 characters' 
+      }, 400)
+    }
+    
+    // 장소 정보가 있으면 업데이트 (독립 포스팅)
+    if (data.place_name) {
+      await c.env.DB.prepare(`
+        UPDATE gatherings 
+        SET title = ?, content = ?, date_text = ?, time_text = ?, max_people = ?, question = ?,
+            place_name = ?, place_address = ?, place_lat = ?, place_lng = ?,
+            gender = ?, age_group = ?, job = ?, self_introduction = ?
+        WHERE id = ?
+      `).bind(
+        data.title,
+        data.content,
+        data.date_text,
+        data.time_text,
+        data.max_people,
+        data.question || '',
+        data.place_name,
+        data.place_address,
+        data.place_lat || null,
+        data.place_lng || null,
+        data.gender,
+        data.age_group,
+        data.job.trim(),
+        data.self_introduction.trim(),
+        id
+      ).run()
+    } else {
+      // 특가할인 포스팅 (장소는 변경 불가)
+      await c.env.DB.prepare(`
+        UPDATE gatherings 
+        SET title = ?, content = ?, date_text = ?, time_text = ?, max_people = ?, question = ?,
+            gender = ?, age_group = ?, job = ?, self_introduction = ?
+        WHERE id = ?
+      `).bind(
+        data.title,
+        data.content,
+        data.date_text,
+        data.time_text,
+        data.max_people,
+        data.question || '',
+        data.gender,
+        data.age_group,
+        data.job.trim(),
+        data.self_introduction.trim(),
+        id
+      ).run()
+    }
 
     const updated = await c.env.DB.prepare(
       'SELECT * FROM gatherings WHERE id = ?'

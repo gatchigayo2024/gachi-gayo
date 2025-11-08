@@ -1587,7 +1587,16 @@ function renderGatheringDetailPanel() {
   if (!APP_STATE.currentUser) {
     applyButtonHtml = '<button type="button" onclick="requireLogin(() => showGatheringDetail(' + g.id + '))" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">동행 신청하기</button>'
   } else if (g.user_id === APP_STATE.currentUser.id) {
-    applyButtonHtml = '<div class="text-center text-gray-600 py-4">내가 작성한 포스팅입니다</div>'
+    applyButtonHtml = `
+      <div class="flex gap-3">
+        <button type="button" onclick="showEditGatheringModal(${g.id})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg">
+          <i class="fas fa-edit mr-2"></i>수정하기
+        </button>
+        <button type="button" onclick="deleteGathering(${g.id})" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-lg">
+          <i class="fas fa-trash mr-2"></i>삭제하기
+        </button>
+      </div>
+    `
   } else if (applicationStatus === 'pending') {
     applyButtonHtml = '<button disabled class="w-full bg-gray-400 text-white font-bold py-4 rounded-lg cursor-not-allowed">수락 대기 중</button>'
   } else if (applicationStatus === 'accepted') {
@@ -2483,6 +2492,320 @@ function renderMyGatheringCard(gathering) {
       </div>
     </div>
   `
+}
+
+// 같이가요 수정 모달
+async function showEditGatheringModal(gatheringId) {
+  try {
+    // 기존 데이터 가져오기
+    const res = await fetch(`/api/gatherings/${gatheringId}`)
+    const data = await res.json()
+    
+    if (!data.success) {
+      alert('포스팅 정보를 불러올 수 없습니다.')
+      return
+    }
+    
+    const g = data.gathering
+    
+    // 특가할인과 연결된 포스팅인지 확인
+    const isDealGathering = g.special_deal_id !== null
+    
+    const html = `
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" id="editGatheringModal" onclick="if(event.target.id==='editGatheringModal') closeEditGatheringModal()">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+          <div class="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
+            <h2 class="text-lg font-bold">같이가요 수정</h2>
+            <button type="button" onclick="closeEditGatheringModal()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          
+          <div class="p-4">
+            <form onsubmit="submitEditGathering(event, ${g.id})" class="space-y-4">
+              <div>
+                <label class="block font-medium mb-2">제목</label>
+                <input type="text" id="edit-title" value="${g.title}" required class="w-full border rounded-lg px-3 py-2">
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-2">내용</label>
+                <textarea id="edit-content" required rows="5" class="w-full border rounded-lg px-3 py-2">${g.content}</textarea>
+              </div>
+              
+              ${!isDealGathering ? `
+                <!-- 장소 검색 (독립 포스팅만) -->
+                <div>
+                  <label class="block font-medium mb-2">장소 검색</label>
+                  <div class="relative">
+                    <input 
+                      type="text" 
+                      id="edit-place-search-input"
+                      class="w-full border rounded-lg px-3 py-2 pr-10" 
+                      placeholder="장소명을 입력하세요"
+                      onkeyup="searchPlacesForEdit(this.value)"
+                      autocomplete="off"
+                    >
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                  </div>
+                  
+                  <!-- 검색 결과 -->
+                  <div id="edit-place-search-results" class="mt-2 border rounded-lg max-h-60 overflow-y-auto hidden"></div>
+                  
+                  <!-- 선택된 장소 표시 -->
+                  <div id="edit-selected-place-display" class="mt-2">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p class="font-medium">${g.place_name}</p>
+                      <p class="text-sm text-gray-600">${g.place_address}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- 숨김 필드 -->
+                <input type="hidden" id="edit-place-name" value="${g.place_name}">
+                <input type="hidden" id="edit-place-address" value="${g.place_address}">
+                <input type="hidden" id="edit-place-lat" value="${g.place_lat || ''}">
+                <input type="hidden" id="edit-place-lng" value="${g.place_lng || ''}">
+              ` : `
+                <!-- 특가할인 장소 표시 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h3 class="font-bold mb-2">장소</h3>
+                  <p class="font-medium">${g.place_name}</p>
+                  <p class="text-sm text-gray-600">${g.place_address}</p>
+                </div>
+              `}
+              
+              <div>
+                <label class="block font-medium mb-2">날짜</label>
+                <input type="text" id="edit-date" value="${g.date_text}" required class="w-full border rounded-lg px-3 py-2">
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-2">시간</label>
+                <input type="text" id="edit-time" value="${g.time_text}" required class="w-full border rounded-lg px-3 py-2">
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-2">최대 인원 (본인 포함)</label>
+                <input type="number" id="edit-max-people" value="${g.max_people}" min="2" max="20" class="w-full border rounded-lg px-3 py-2">
+              </div>
+              
+              <div>
+                <label class="block font-medium mb-2">동행 신청자에게 할 질문 (선택)</label>
+                <input type="text" id="edit-question" value="${g.question || ''}" class="w-full border rounded-lg px-3 py-2">
+              </div>
+              
+              <!-- 작성자 정보 -->
+              <div class="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
+                <h3 class="font-bold text-gray-800 mb-3">
+                  <i class="fas fa-user-circle mr-1"></i>작성자 정보
+                </h3>
+                
+                <div class="space-y-3">
+                  <div>
+                    <label class="block font-medium mb-1 text-sm">성별 <span class="text-red-500">*</span></label>
+                    <div class="flex gap-3">
+                      <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="edit-author-gender" value="남" ${g.gender === '남' ? 'checked' : ''} required class="mr-2">
+                        <span>남</span>
+                      </label>
+                      <label class="flex items-center cursor-pointer">
+                        <input type="radio" name="edit-author-gender" value="여" ${g.gender === '여' ? 'checked' : ''} required class="mr-2">
+                        <span>여</span>
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block font-medium mb-1 text-sm">연령대 <span class="text-red-500">*</span></label>
+                    <select id="edit-age-group" required class="w-full border rounded-lg px-3 py-2">
+                      <option value="">선택하세요</option>
+                      <option value="20대" ${g.age_group === '20대' ? 'selected' : ''}>20대</option>
+                      <option value="30대" ${g.age_group === '30대' ? 'selected' : ''}>30대</option>
+                      <option value="40대" ${g.age_group === '40대' ? 'selected' : ''}>40대</option>
+                      <option value="50대" ${g.age_group === '50대' ? 'selected' : ''}>50대</option>
+                      <option value="60대 이상" ${g.age_group === '60대 이상' ? 'selected' : ''}>60대 이상</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label class="block font-medium mb-1 text-sm">직업 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(최대 10자)</span></label>
+                    <input type="text" id="edit-job" value="${g.job || ''}" required maxlength="10" class="w-full border rounded-lg px-3 py-2">
+                  </div>
+                  
+                  <div>
+                    <label class="block font-medium mb-1 text-sm">자기소개 <span class="text-red-500">*</span> <span class="text-gray-500 text-xs">(20자 이상)</span></label>
+                    <textarea id="edit-self-intro" required rows="3" class="w-full border rounded-lg px-3 py-2">${g.self_introduction || ''}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">현재: <span id="edit-intro-char-count">${(g.self_introduction || '').length}</span>자</p>
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
+                수정 완료
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `
+    
+    document.body.insertAdjacentHTML('beforeend', html)
+    
+    // 자기소개 글자 수 카운터
+    const selfIntroInput = document.getElementById('edit-self-intro')
+    const charCount = document.getElementById('edit-intro-char-count')
+    
+    if (selfIntroInput && charCount) {
+      selfIntroInput.addEventListener('input', () => {
+        const length = selfIntroInput.value.length
+        charCount.textContent = length
+        
+        if (length < 20) {
+          charCount.classList.add('text-red-500')
+          charCount.classList.remove('text-green-600')
+        } else {
+          charCount.classList.add('text-green-600')
+          charCount.classList.remove('text-red-500')
+        }
+      })
+    }
+  } catch (error) {
+    console.error('❌ 수정 모달 생성 오류:', error)
+    alert('수정 화면을 불러올 수 없습니다.')
+  }
+}
+
+function closeEditGatheringModal() {
+  document.getElementById('editGatheringModal')?.remove()
+}
+
+// 수정용 장소 검색
+let editSearchTimeout
+function searchPlacesForEdit(keyword) {
+  clearTimeout(editSearchTimeout)
+  editSearchTimeout = setTimeout(async () => {
+    if (!keyword || keyword.length < 2) {
+      document.getElementById('edit-place-search-results').classList.add('hidden')
+      return
+    }
+    
+    try {
+      const res = await fetch(`/api/search/places?query=${encodeURIComponent(keyword)}`)
+      const data = await res.json()
+      
+      if (data.success && data.places && data.places.length > 0) {
+        const resultsDiv = document.getElementById('edit-place-search-results')
+        resultsDiv.innerHTML = data.places.map(place => `
+          <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" onclick='selectEditPlace(${JSON.stringify(place)})'>
+            <p class="font-medium">${place.name}</p>
+            <p class="text-sm text-gray-600">${place.address}</p>
+          </div>
+        `).join('')
+        resultsDiv.classList.remove('hidden')
+      } else {
+        document.getElementById('edit-place-search-results').classList.add('hidden')
+      }
+    } catch (error) {
+      console.error('❌ 장소 검색 오류:', error)
+    }
+  }, 300)
+}
+
+function selectEditPlace(place) {
+  document.getElementById('edit-place-name').value = place.name
+  document.getElementById('edit-place-address').value = place.address
+  document.getElementById('edit-place-lat').value = place.lat
+  document.getElementById('edit-place-lng').value = place.lng
+  
+  document.getElementById('edit-selected-place-display').innerHTML = `
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <p class="font-medium">${place.name}</p>
+      <p class="text-sm text-gray-600">${place.address}</p>
+    </div>
+  `
+  
+  document.getElementById('edit-place-search-results').classList.add('hidden')
+  document.getElementById('edit-place-search-input').value = ''
+}
+
+// 같이가요 수정 제출
+async function submitEditGathering(e, gatheringId) {
+  e.preventDefault()
+  
+  // 작성자 정보 유효성 검증
+  const gender = document.querySelector('input[name="edit-author-gender"]:checked')?.value
+  const ageGroup = document.getElementById('edit-age-group').value
+  const job = document.getElementById('edit-job').value
+  const selfIntro = document.getElementById('edit-self-intro').value
+  
+  if (!gender) {
+    alert('성별을 선택해주세요.')
+    return
+  }
+  
+  if (!ageGroup) {
+    alert('연령대를 선택해주세요.')
+    return
+  }
+  
+  if (!job || job.trim().length === 0) {
+    alert('직업을 입력해주세요.')
+    return
+  }
+  
+  if (!selfIntro || selfIntro.trim().length < 20) {
+    alert('자기소개를 20자 이상 입력해주세요.')
+    return
+  }
+  
+  try {
+    const data = {
+      title: document.getElementById('edit-title').value,
+      content: document.getElementById('edit-content').value,
+      date_text: document.getElementById('edit-date').value,
+      time_text: document.getElementById('edit-time').value,
+      max_people: parseInt(document.getElementById('edit-max-people').value),
+      question: document.getElementById('edit-question').value || null,
+      gender: gender,
+      age_group: ageGroup,
+      job: job.trim(),
+      self_introduction: selfIntro.trim()
+    }
+    
+    // 독립 포스팅인 경우 장소 정보도 포함
+    const placeNameInput = document.getElementById('edit-place-name')
+    if (placeNameInput) {
+      data.place_name = placeNameInput.value
+      data.place_address = document.getElementById('edit-place-address').value
+      data.place_lat = parseFloat(document.getElementById('edit-place-lat').value) || null
+      data.place_lng = parseFloat(document.getElementById('edit-place-lng').value) || null
+    }
+    
+    console.log('✏️ 같이가요 수정 요청:', data)
+    
+    const res = await fetch(`/api/gatherings/${gatheringId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    
+    const result = await res.json()
+    console.log('✏️ 수정 응답:', result)
+    
+    if (result.success) {
+      closeEditGatheringModal()
+      alert('수정되었습니다.')
+      // 상세 화면 새로고침
+      await showGatheringDetail(gatheringId)
+    } else {
+      console.error('❌ 수정 실패:', result.error)
+      alert('수정에 실패했습니다: ' + (result.error || '알 수 없는 오류'))
+    }
+  } catch (error) {
+    console.error('❌ 같이가요 수정 중 오류:', error)
+    alert('수정 중 오류가 발생했습니다: ' + error.message)
+  }
 }
 
 async function deleteGathering(id) {
