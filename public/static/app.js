@@ -456,21 +456,88 @@ function showSuccessModal(message, onConfirm) {
 // 질문 답변 모달 표시
 function showQuestionModal(question, onSubmit) {
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="questionModal">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto p-4" id="questionModal">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full my-8 overflow-hidden">
         <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
-          <h2 class="text-xl font-bold text-white">작성자의 질문</h2>
+          <h2 class="text-xl font-bold text-white">동행 신청</h2>
         </div>
         <div class="p-6">
-          <div class="bg-purple-50 rounded-lg p-4 mb-4">
-            <p class="text-gray-800 font-medium">${question}</p>
+          <!-- 신청자 정보 입력 -->
+          <div class="mb-6">
+            <h3 class="font-bold text-gray-800 mb-3">신청자 정보</h3>
+            
+            <div class="space-y-4">
+              <!-- 성별 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">성별 *</label>
+                <div class="flex gap-2">
+                  <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="apply-gender" value="남성" class="peer sr-only" required>
+                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center">남성</div>
+                  </label>
+                  <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="apply-gender" value="여성" class="peer sr-only">
+                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center">여성</div>
+                  </label>
+                </div>
+              </div>
+              
+              <!-- 연령대 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">연령대 *</label>
+                <select id="apply-age-group" required class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none">
+                  <option value="">선택하세요</option>
+                  <option value="20대">20대</option>
+                  <option value="30대">30대</option>
+                  <option value="40대">40대</option>
+                  <option value="50대">50대</option>
+                  <option value="60대 이상">60대 이상</option>
+                </select>
+              </div>
+              
+              <!-- 직업 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">직업 (10자 이내) *</label>
+                <input 
+                  type="text" 
+                  id="apply-job"
+                  maxlength="10"
+                  required
+                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none"
+                  placeholder="예: 회사원, 학생, 프리랜서"
+                >
+              </div>
+              
+              <!-- 자기소개 -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">자기소개 (20자 이상) *</label>
+                <textarea 
+                  id="apply-self-intro"
+                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
+                  rows="3"
+                  placeholder="본인에 대해 간단히 소개해주세요 (최소 20자)"
+                ></textarea>
+                <p class="text-xs text-gray-500 mt-1">
+                  <span id="apply-intro-count">0</span>/20자 이상
+                </p>
+              </div>
+            </div>
           </div>
-          <textarea 
-            id="answerInput"
-            class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
-            rows="4"
-            placeholder="답변을 입력하세요..."
-          ></textarea>
+          
+          <!-- 작성자 질문 -->
+          <div class="mb-4">
+            <h3 class="font-bold text-gray-800 mb-2">작성자의 질문</h3>
+            <div class="bg-purple-50 rounded-lg p-4 mb-3">
+              <p class="text-gray-800 font-medium">${question}</p>
+            </div>
+            <textarea 
+              id="answerInput"
+              class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
+              rows="3"
+              placeholder="답변을 입력하세요..."
+            ></textarea>
+          </div>
+          
           <div class="flex space-x-2 mt-4">
             <button 
               type="button"
@@ -484,7 +551,7 @@ function showQuestionModal(question, onSubmit) {
               onclick="submitQuestion()"
               class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition-colors"
             >
-              제출
+              신청하기
             </button>
           </div>
         </div>
@@ -494,21 +561,74 @@ function showQuestionModal(question, onSubmit) {
   
   document.body.insertAdjacentHTML('beforeend', html)
   
+  // 자기소개 글자 수 카운터
+  const introTextarea = document.getElementById('apply-self-intro')
+  const introCount = document.getElementById('apply-intro-count')
+  introTextarea?.addEventListener('input', () => {
+    const length = introTextarea.value.trim().length
+    introCount.textContent = length
+    introCount.style.color = length >= 20 ? '#10b981' : '#ef4444'
+  })
+  
   window.submitQuestion = () => {
-    const answer = document.getElementById('answerInput').value.trim()
-    if (!answer) {
-      alert('답변을 입력해주세요.')
+    // 성별 검증
+    const gender = document.querySelector('input[name="apply-gender"]:checked')?.value
+    if (!gender) {
+      alert('성별을 선택해주세요.')
       return
     }
+    
+    // 연령대 검증
+    const ageGroup = document.getElementById('apply-age-group').value
+    if (!ageGroup) {
+      alert('연령대를 선택해주세요.')
+      return
+    }
+    
+    // 직업 검증
+    const job = document.getElementById('apply-job').value.trim()
+    if (!job) {
+      alert('직업을 입력해주세요.')
+      return
+    }
+    if (job.length > 10) {
+      alert('직업은 10자 이내로 입력해주세요.')
+      return
+    }
+    
+    // 자기소개 검증
+    const selfIntro = document.getElementById('apply-self-intro').value.trim()
+    if (!selfIntro) {
+      alert('자기소개를 입력해주세요.')
+      return
+    }
+    if (selfIntro.length < 20) {
+      alert('자기소개는 최소 20자 이상 입력해주세요.')
+      return
+    }
+    
+    // 답변 검증
+    const answer = document.getElementById('answerInput').value.trim()
+    if (!answer) {
+      alert('작성자의 질문에 대한 답변을 입력해주세요.')
+      return
+    }
+    
     document.getElementById('questionModal')?.remove()
-    if (onSubmit) onSubmit(answer)
+    if (onSubmit) {
+      onSubmit({
+        answer,
+        gender,
+        age_group: ageGroup,
+        job,
+        self_introduction: selfIntro
+      })
+    }
   }
   
   window.closeQuestionModal = () => {
     document.getElementById('questionModal')?.remove()
   }
-  
-  // setTimeout(() => document.getElementById('answerInput')?.focus(), 100) - 모바일 키보드 팝업 방지
 }
 
 // ============================================
@@ -1740,17 +1860,25 @@ async function applyGathering() {
   
   const g = APP_STATE.selectedGathering
   
-  // 질문 답변 모달 표시
-  showQuestionModal(g.question || '간단한 자기소개를 해주세요', async (answer) => {
+  // 신청자 정보 입력 모달 표시
+  showQuestionModal(g.question || '간단한 자기소개를 해주세요', async (applicationData) => {
     try {
-      console.log('🤝 동행 신청 요청:', { gathering_id: g.id, user_id: APP_STATE.currentUser.id })
+      console.log('🤝 동행 신청 요청:', { 
+        gathering_id: g.id, 
+        user_id: APP_STATE.currentUser.id,
+        applicationData 
+      })
       
       const res = await fetch(`/api/gatherings/${g.id}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: APP_STATE.currentUser.id,
-          answer: answer
+          answer: applicationData.answer,
+          gender: applicationData.gender,
+          age_group: applicationData.age_group,
+          job: applicationData.job,
+          self_introduction: applicationData.self_introduction
         })
       })
       

@@ -1130,7 +1130,29 @@ app.post('/api/gatherings/:id/like', async (c) => {
 app.post('/api/gatherings/:id/apply', async (c) => {
   try {
     const gatheringId = c.req.param('id')
-    const { user_id, answer } = await c.req.json()
+    const { user_id, answer, gender, age_group, job, self_introduction } = await c.req.json()
+    
+    // 신청자 정보 유효성 검증
+    if (!gender || !age_group || !job || !self_introduction) {
+      return c.json({ 
+        success: false, 
+        error: 'Missing required applicant information' 
+      }, 400)
+    }
+    
+    if (self_introduction.trim().length < 20) {
+      return c.json({ 
+        success: false, 
+        error: 'Self introduction must be at least 20 characters' 
+      }, 400)
+    }
+    
+    if (job.trim().length > 10) {
+      return c.json({ 
+        success: false, 
+        error: 'Job must be 10 characters or less' 
+      }, 400)
+    }
     
     // 중복 신청 확인
     const existing = await c.env.DB.prepare(
@@ -1142,8 +1164,8 @@ app.post('/api/gatherings/:id/apply', async (c) => {
     }
 
     await c.env.DB.prepare(
-      'INSERT INTO gathering_applications (gathering_id, user_id, answer) VALUES (?, ?, ?)'
-    ).bind(gatheringId, user_id, answer || '').run()
+      'INSERT INTO gathering_applications (gathering_id, user_id, answer, gender, age_group, job, self_introduction) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    ).bind(gatheringId, user_id, answer || '', gender, age_group, job.trim(), self_introduction.trim()).run()
 
     // 신청자 및 포스팅 정보 조회
     const applicantInfo = await c.env.DB.prepare(`
