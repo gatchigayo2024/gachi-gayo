@@ -456,28 +456,45 @@ function showSuccessModal(message, onConfirm) {
 // 질문 답변 모달 표시
 function showQuestionModal(question, onSubmit) {
   const html = `
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] overflow-y-auto p-4" id="questionModal">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full my-8 overflow-hidden">
-        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" id="questionModal" onclick="if(event.target.id==='questionModal') closeQuestionModal()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+        <!-- 헤더 (고정) -->
+        <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4 flex-shrink-0">
           <h2 class="text-xl font-bold text-white">동행 신청</h2>
         </div>
-        <div class="p-6">
-          <!-- 신청자 정보 입력 -->
+        
+        <!-- 스크롤 가능한 컨텐츠 영역 -->
+        <div class="overflow-y-auto flex-1 p-6">
+          <!-- 작성자 질문 (먼저 표시) -->
           <div class="mb-6">
+            <h3 class="font-bold text-gray-800 mb-2">작성자의 질문</h3>
+            <div class="bg-purple-50 rounded-lg p-4 mb-3">
+              <p class="text-gray-800 font-medium">${question}</p>
+            </div>
+            <textarea 
+              id="answerInput"
+              class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
+              rows="3"
+              placeholder="답변을 입력하세요..."
+            ></textarea>
+          </div>
+          
+          <!-- 신청자 정보 입력 -->
+          <div class="mb-4">
             <h3 class="font-bold text-gray-800 mb-3">신청자 정보</h3>
             
-            <div class="space-y-4">
+            <div class="space-y-3">
               <!-- 성별 -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">성별 *</label>
                 <div class="flex gap-2">
                   <label class="flex-1 cursor-pointer">
                     <input type="radio" name="apply-gender" value="남성" class="peer sr-only" required>
-                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center">남성</div>
+                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center text-sm">남성</div>
                   </label>
                   <label class="flex-1 cursor-pointer">
                     <input type="radio" name="apply-gender" value="여성" class="peer sr-only">
-                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center">여성</div>
+                    <div class="border-2 border-gray-300 peer-checked:border-purple-600 peer-checked:bg-purple-50 rounded-lg px-4 py-2 text-center text-sm">여성</div>
                   </label>
                 </div>
               </div>
@@ -485,7 +502,7 @@ function showQuestionModal(question, onSubmit) {
               <!-- 연령대 -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">연령대 *</label>
-                <select id="apply-age-group" required class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none">
+                <select id="apply-age-group" required class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 text-sm focus:border-purple-500 focus:outline-none">
                   <option value="">선택하세요</option>
                   <option value="20대">20대</option>
                   <option value="30대">30대</option>
@@ -503,7 +520,7 @@ function showQuestionModal(question, onSubmit) {
                   id="apply-job"
                   maxlength="10"
                   required
-                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none"
+                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 text-sm focus:border-purple-500 focus:outline-none"
                   placeholder="예: 회사원, 학생, 프리랜서"
                 >
               </div>
@@ -513,7 +530,7 @@ function showQuestionModal(question, onSubmit) {
                 <label class="block text-sm font-medium text-gray-700 mb-2">자기소개 (20자 이상) *</label>
                 <textarea 
                   id="apply-self-intro"
-                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
+                  class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:border-purple-500 focus:outline-none resize-none" 
                   rows="3"
                   placeholder="본인에 대해 간단히 소개해주세요 (최소 20자)"
                 ></textarea>
@@ -523,22 +540,11 @@ function showQuestionModal(question, onSubmit) {
               </div>
             </div>
           </div>
-          
-          <!-- 작성자 질문 -->
-          <div class="mb-4">
-            <h3 class="font-bold text-gray-800 mb-2">작성자의 질문</h3>
-            <div class="bg-purple-50 rounded-lg p-4 mb-3">
-              <p class="text-gray-800 font-medium">${question}</p>
-            </div>
-            <textarea 
-              id="answerInput"
-              class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:border-purple-500 focus:outline-none resize-none" 
-              rows="3"
-              placeholder="답변을 입력하세요..."
-            ></textarea>
-          </div>
-          
-          <div class="flex space-x-2 mt-4">
+        </div>
+        
+        <!-- 버튼 영역 (고정) -->
+        <div class="flex-shrink-0 p-6 pt-0">
+          <div class="flex space-x-2">
             <button 
               type="button"
               onclick="closeQuestionModal()"
@@ -571,6 +577,13 @@ function showQuestionModal(question, onSubmit) {
   })
   
   window.submitQuestion = () => {
+    // 답변 검증 (먼저)
+    const answer = document.getElementById('answerInput').value.trim()
+    if (!answer) {
+      alert('작성자의 질문에 대한 답변을 입력해주세요.')
+      return
+    }
+    
     // 성별 검증
     const gender = document.querySelector('input[name="apply-gender"]:checked')?.value
     if (!gender) {
@@ -604,13 +617,6 @@ function showQuestionModal(question, onSubmit) {
     }
     if (selfIntro.length < 20) {
       alert('자기소개는 최소 20자 이상 입력해주세요.')
-      return
-    }
-    
-    // 답변 검증
-    const answer = document.getElementById('answerInput').value.trim()
-    if (!answer) {
-      alert('작성자의 질문에 대한 답변을 입력해주세요.')
       return
     }
     
