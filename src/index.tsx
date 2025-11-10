@@ -2092,6 +2092,7 @@ async function sendEmailNotification(type: string, data: any, env: any) {
             <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
               <p><strong>신청자:</strong> ${data.user_name} (${data.user_phone})</p>
               <p><strong>특가할인:</strong> ${data.deal_title}</p>
+              <p><strong>동행할 총 인원:</strong> ${data.party_size}명</p>
               <p><strong>신청일시:</strong> ${data.created_at}</p>
             </div>
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">

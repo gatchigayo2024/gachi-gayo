@@ -1680,6 +1680,7 @@ async function loadGroupRequests() {
                 <th class="text-left p-3">전화번호</th>
                 <th class="text-left p-3">특가할인</th>
                 <th class="text-left p-3">장소</th>
+                <th class="text-left p-3">인원</th>
                 <th class="text-left p-3">신청일</th>
                 <th class="text-left p-3">상태</th>
               </tr>
@@ -1692,6 +1693,7 @@ async function loadGroupRequests() {
                   <td class="p-3 font-mono text-blue-600">${req.user_phone}</td>
                   <td class="p-3">${req.deal_title}</td>
                   <td class="p-3">${req.place_name}</td>
+                  <td class="p-3"><span class="font-semibold text-blue-600">${req.party_size || 2}명</span></td>
                   <td class="p-3">${new Date(req.created_at).toLocaleDateString('ko-KR')}</td>
                   <td class="p-3">
                     <span class="px-2 py-1 rounded text-sm ${
@@ -1737,6 +1739,9 @@ async function loadGroupRequests() {
               <div class="space-y-1 text-sm">
                 <div class="text-gray-600">
                   <i class="fas fa-map-marker-alt mr-1 text-red-500"></i>${req.place_name}
+                </div>
+                <div class="text-gray-700">
+                  <i class="fas fa-users mr-1 text-blue-600"></i>동행 인원: <span class="font-semibold text-blue-600">${req.party_size || 2}명</span>
                 </div>
                 <div class="text-xs text-gray-500">
                   <i class="fas fa-calendar mr-1"></i>신청일: ${new Date(req.created_at).toLocaleDateString('ko-KR')}
