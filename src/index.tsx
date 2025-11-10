@@ -664,8 +664,8 @@ app.post('/api/deals/:id/group-chat-request', async (c) => {
       return c.json({ success: false, error: 'User ID and Deal ID required' }, 400)
     }
     
-    // 인원 수 유효성 검증
-    const validatedPartySize = party_size && party_size >= 1 && party_size <= 6 ? party_size : 2
+    // 인원 수 유효성 검증 (최소 2명, 최대 6명)
+    const validatedPartySize = party_size && party_size >= 2 && party_size <= 6 ? party_size : 2
     
     // 중복 신청 확인
     const existing = await c.env.DB.prepare(

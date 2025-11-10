@@ -1445,42 +1445,42 @@ async function requestGroupChatForDeal(dealId) {
 function showPartySizeModal(dealId) {
   const html = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="partySizeModal" onclick="if(event.target.id==='partySizeModal') closePartySizeModal()">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden" onclick="event.stopPropagation()">
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
-          <h2 class="text-xl font-bold text-white">특가 동행 인원</h2>
+      <div class="bg-white rounded-xl shadow-2xl max-w-xs w-full mx-4 overflow-hidden" onclick="event.stopPropagation()">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-3">
+          <h2 class="text-lg font-bold text-white">특가 동행 인원</h2>
         </div>
-        <div class="p-6">
-          <p class="text-gray-600 mb-4 text-center">
-            함께할 인원을 입력하세요
+        <div class="p-5">
+          <p class="text-gray-600 text-sm mb-3 text-center">
+            동행할 총 인원수를 입력해주세요
           </p>
-          <p class="text-sm text-red-600 mb-4 text-center font-medium">
-            최대 6명까지 가능합니다
+          <p class="text-xs text-red-500 mb-4 text-center">
+            최소 2명 ~ 최대 6명
           </p>
           
-          <div class="flex items-center justify-center mb-6">
+          <div class="flex items-center justify-center mb-5">
             <input 
               type="number" 
               id="party-size-input"
-              min="1" 
+              min="2" 
               max="6" 
               value="2"
-              class="w-32 border-2 border-blue-300 rounded-lg px-4 py-3 text-center text-3xl font-bold focus:border-blue-500 focus:outline-none"
+              class="w-20 border border-gray-300 rounded-lg px-3 py-2 text-center text-xl font-semibold focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
             >
-            <span class="ml-3 text-2xl text-gray-600">명</span>
+            <span class="ml-2 text-sm text-gray-600 font-medium">명</span>
           </div>
           
-          <div class="flex space-x-2">
+          <div class="flex gap-2">
             <button 
               type="button"
               onclick="closePartySizeModal()"
-              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
+              class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 rounded-lg transition-colors text-sm"
             >
               취소
             </button>
             <button 
               type="button"
               onclick="submitPartySize(${dealId})"
-              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
             >
               확인
             </button>
@@ -1496,7 +1496,7 @@ function showPartySizeModal(dealId) {
   const input = document.getElementById('party-size-input')
   input?.addEventListener('input', () => {
     let value = parseInt(input.value)
-    if (value < 1) input.value = 1
+    if (value < 2) input.value = 2
     if (value > 6) input.value = 6
   })
 }
@@ -1511,8 +1511,8 @@ async function submitPartySize(dealId) {
   const partySize = parseInt(input.value)
   
   // 유효성 검증
-  if (!partySize || partySize < 1 || partySize > 6) {
-    alert('인원은 1명에서 6명까지 입력 가능합니다.')
+  if (!partySize || partySize < 2 || partySize > 6) {
+    alert('인원은 최소 2명에서 최대 6명까지 입력 가능합니다.')
     return
   }
   
