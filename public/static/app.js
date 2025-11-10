@@ -1437,14 +1437,100 @@ function closeDealDetail() {
 async function requestGroupChatForDeal(dealId) {
   if (!requireLogin(() => requestGroupChatForDeal(dealId))) return
   
-  const confirmed = confirm('지인들과의 같이가요 채팅방 생성을 신청하시겠습니까?\n관리자가 확인 후 문자로 안내해드립니다.')
+  // 1단계: 인원 수 입력 팝업 표시
+  showPartySizeModal(dealId)
+}
+
+// 인원 수 입력 팝업
+function showPartySizeModal(dealId) {
+  const html = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]" id="partySizeModal" onclick="if(event.target.id==='partySizeModal') closePartySizeModal()">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden" onclick="event.stopPropagation()">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+          <h2 class="text-xl font-bold text-white">특가 동행 인원</h2>
+        </div>
+        <div class="p-6">
+          <p class="text-gray-600 mb-4 text-center">
+            함께할 인원을 입력하세요
+          </p>
+          <p class="text-sm text-red-600 mb-4 text-center font-medium">
+            최대 6명까지 가능합니다
+          </p>
+          
+          <div class="flex items-center justify-center mb-6">
+            <input 
+              type="number" 
+              id="party-size-input"
+              min="1" 
+              max="6" 
+              value="2"
+              class="w-32 border-2 border-blue-300 rounded-lg px-4 py-3 text-center text-3xl font-bold focus:border-blue-500 focus:outline-none"
+            >
+            <span class="ml-3 text-2xl text-gray-600">명</span>
+          </div>
+          
+          <div class="flex space-x-2">
+            <button 
+              type="button"
+              onclick="closePartySizeModal()"
+              class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-colors"
+            >
+              취소
+            </button>
+            <button 
+              type="button"
+              onclick="submitPartySize(${dealId})"
+              class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+  
+  document.body.insertAdjacentHTML('beforeend', html)
+  
+  // 입력 필드 유효성 검증
+  const input = document.getElementById('party-size-input')
+  input?.addEventListener('input', () => {
+    let value = parseInt(input.value)
+    if (value < 1) input.value = 1
+    if (value > 6) input.value = 6
+  })
+}
+
+function closePartySizeModal() {
+  document.getElementById('partySizeModal')?.remove()
+}
+
+// 인원 수 확인 후 기존 확인 팝업 표시
+async function submitPartySize(dealId) {
+  const input = document.getElementById('party-size-input')
+  const partySize = parseInt(input.value)
+  
+  // 유효성 검증
+  if (!partySize || partySize < 1 || partySize > 6) {
+    alert('인원은 1명에서 6명까지 입력 가능합니다.')
+    return
+  }
+  
+  // 첫 번째 팝업 닫기
+  closePartySizeModal()
+  
+  // 2단계: 기존 확인 팝업 표시
+  const confirmed = confirm('지인들과 같이가요 채팅방 생성을 신청하시겠습니까?\n관리자가 확인 후 문자로 안내해드립니다.')
   
   if (confirmed) {
     try {
       const res = await fetch(`/api/deals/${dealId}/group-chat-request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: APP_STATE.currentUser.id })
+        body: JSON.stringify({ 
+          user_id: APP_STATE.currentUser.id,
+          party_size: partySize
+        })
       })
       
       const data = await res.json()

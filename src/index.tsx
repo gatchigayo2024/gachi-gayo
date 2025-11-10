@@ -658,11 +658,14 @@ app.post('/api/deals/:id/like', async (c) => {
 app.post('/api/deals/:id/group-chat-request', async (c) => {
   try {
     const dealId = c.req.param('id')
-    const { user_id } = await c.req.json()
+    const { user_id, party_size } = await c.req.json()
     
     if (!user_id || !dealId) {
       return c.json({ success: false, error: 'User ID and Deal ID required' }, 400)
     }
+    
+    // 인원 수 유효성 검증
+    const validatedPartySize = party_size && party_size >= 1 && party_size <= 6 ? party_size : 2
     
     // 중복 신청 확인
     const existing = await c.env.DB.prepare(
@@ -673,10 +676,10 @@ app.post('/api/deals/:id/group-chat-request', async (c) => {
       return c.json({ success: false, error: 'Already requested' }, 400)
     }
     
-    // 신청 생성
+    // 신청 생성 (party_size 포함)
     await c.env.DB.prepare(
-      'INSERT INTO group_chat_requests (user_id, deal_id, status) VALUES (?, ?, ?)'
-    ).bind(user_id, dealId, 'pending').run()
+      'INSERT INTO group_chat_requests (user_id, deal_id, party_size, status) VALUES (?, ?, ?, ?)'
+    ).bind(user_id, dealId, validatedPartySize, 'pending').run()
     
     // 신청자 및 특가할인 정보 조회
     const requestInfo = await c.env.DB.prepare(`
@@ -695,6 +698,7 @@ app.post('/api/deals/:id/group-chat-request', async (c) => {
         user_name: requestInfo.user_name,
         user_phone: requestInfo.user_phone,
         deal_title: requestInfo.deal_title,
+        party_size: validatedPartySize,
         created_at: new Date().toISOString()
       }, c.env)
     }
