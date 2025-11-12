@@ -114,7 +114,7 @@ function showPhoneAuth() {
           <!-- 이름 입력 -->
           <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-              <i class="fas fa-user mr-1"></i>이름 (닉네임)
+              <i class="fas fa-user mr-1"></i>닉네임
             </label>
             <input 
               type="text" 
