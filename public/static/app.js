@@ -2648,6 +2648,16 @@ async function renderMyPage() {
           </div>
         </button>
         
+        <button type="button" onclick="window.open('https://open.kakao.com/me/gatchigayo', '_blank')" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i class="fas fa-headset text-green-600 text-xl"></i>
+              <span class="font-medium">고객센터</span>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400"></i>
+          </div>
+        </button>
+        
         <button type="button" onclick="logout()" class="w-full bg-white rounded-lg shadow p-4 text-left hover:bg-gray-50">
           <div class="flex items-center gap-3">
             <i class="fas fa-sign-out-alt text-gray-600 text-xl"></i>
